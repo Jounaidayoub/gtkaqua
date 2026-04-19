@@ -7,10 +7,24 @@
 
 typedef struct {
     GtkWidget *window;
+    GtkWidget *overlay;
+    GtkWidget *background_picture;
+    GtkMediaStream *background_stream;
     GtkWidget *container;
     bool fullscreen;
     World world;
 } AppState;
+
+static void on_background_error(GObject *obj, GParamSpec *pspec, gpointer user_data) {
+    (void) pspec;
+    (void) user_data;
+
+    GtkMediaStream *stream = GTK_MEDIA_STREAM(obj);
+    const GError *err = gtk_media_stream_get_error(stream);
+    if (err != 0) {
+        g_warning("Background video error: %s", err->message);
+    }
+}
 
 static gboolean tick_cb(gpointer data) {
     AppState *app = (AppState *) data;
@@ -72,13 +86,34 @@ static void on_activate(GtkApplication *gtk_app, gpointer user_data) {
     gtk_window_set_title(GTK_WINDOW(app->window), "GTK Aquarium");
     gtk_window_set_default_size(GTK_WINDOW(app->window), START_WIDTH, START_HEIGHT);
 
+    app->overlay = gtk_overlay_new();
+    gtk_window_set_child(GTK_WINDOW(app->window), app->overlay);
+
+    app->background_stream = gtk_media_file_new_for_filename("assets/background-underwater.webm");
+    gtk_media_stream_set_loop(GTK_MEDIA_STREAM(app->background_stream), TRUE);
+    gtk_media_stream_set_muted(GTK_MEDIA_STREAM(app->background_stream), TRUE);
+    gtk_media_stream_set_playing(GTK_MEDIA_STREAM(app->background_stream), TRUE);
+    g_signal_connect(app->background_stream, "notify::error", G_CALLBACK(on_background_error), 0);
+
+    app->background_picture = gtk_picture_new_for_paintable(GDK_PAINTABLE(app->background_stream));
+    gtk_picture_set_can_shrink(GTK_PICTURE(app->background_picture), TRUE);
+    gtk_picture_set_content_fit(GTK_PICTURE(app->background_picture), GTK_CONTENT_FIT_COVER);
+    gtk_widget_set_hexpand(app->background_picture, TRUE);
+    gtk_widget_set_vexpand(app->background_picture, TRUE);
+    gtk_overlay_set_child(GTK_OVERLAY(app->overlay), app->background_picture);
+
     app->container = gtk_fixed_new();
-    gtk_window_set_child(GTK_WINDOW(app->window), app->container);
+    gtk_widget_add_css_class(app->container, "fish-layer");
+    gtk_widget_set_hexpand(app->container, TRUE);
+    gtk_widget_set_vexpand(app->container, TRUE);
+    gtk_overlay_add_overlay(GTK_OVERLAY(app->overlay), app->container);
+    gtk_widget_set_can_target(app->container, FALSE);
 
     GtkCssProvider *bg_provider = gtk_css_provider_new();
     gtk_css_provider_load_from_string(
         bg_provider,
         "window { background-image: linear-gradient(180deg, #021b33 0%, #02294a 40%, #013054 100%); }"
+        ".fish-layer { background-color: transparent; background-image: none; }"
     );
     gtk_style_context_add_provider_for_display(
         gdk_display_get_default(),
@@ -93,6 +128,7 @@ static void on_activate(GtkApplication *gtk_app, gpointer user_data) {
 
 
     gtk_window_present(GTK_WINDOW(app->window));
+    gtk_media_stream_play(GTK_MEDIA_STREAM(app->background_stream));
     if (app->fullscreen) {
         gtk_window_fullscreen(GTK_WINDOW(app->window));
     }

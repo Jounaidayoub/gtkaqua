@@ -1,6 +1,12 @@
 #ifndef SPECIES_H
 #define SPECIES_H
 
+/*
+ * Species-level data model:
+ * Each SpeciesConfig entry defines movement, flocking, predator/prey rules,
+ * and population behavior for one species.
+ */
+
 typedef enum {
     SPECIES_GOLDFISH,
     SPECIES_CLOWNFISH,
@@ -14,6 +20,7 @@ typedef enum {
 } SpeciesKind;
 
 typedef struct {
+    /* Identity and sprite metadata */
     SpeciesKind kind;
     const char *name;
     const char *asset_path;
@@ -21,10 +28,12 @@ typedef struct {
     int sprite_height;
     double mouth_forward_ratio;
 
+    /* Movement model */
     double max_speed;
     double min_speed;
     double max_force;
 
+    /* Boids forces (same-species only) */
     double separation_radius;
     double alignment_radius;
     double cohesion_radius;
@@ -32,14 +41,17 @@ typedef struct {
     double alignment_weight;
     double cohesion_weight;
 
+    /* Predator/prey steering */
     double fear_radius;
     double fear_weight;
     double hunt_radius;
     double hunt_weight;
 
+    /* Extra same-species spacing (anti-clump) */
     double avoid_same_radius;
     double avoid_same_weight;
 
+    /* Ecosystem and lifecycle */
     int prey_mask;
     double lifespan;
     int flock_size;

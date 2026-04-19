@@ -1,6 +1,10 @@
 #ifndef VEC2_H
 #define VEC2_H
 
+/*
+ * Header-only 2D vector helpers used by movement, steering, and world wrapping.
+ */
+
 #include <math.h>
 #include <stdlib.h>
 
@@ -80,6 +84,13 @@ static inline double vec2_dist_sq(Vec2 a, Vec2 b) {
 }
 
 static inline Vec2 vec2_delta_wrap(Vec2 from, Vec2 to, double w, double h) {
+    if (w <= 0.0 || h <= 0.0) {
+        return vec2_sub(to, from);
+    }
+
+    from = vec2_wrap(from, w, h);
+    to = vec2_wrap(to, w, h);
+
     Vec2 d = vec2_sub(to, from);
     if (d.x > w * 0.5) {
         d.x -= w;

@@ -80,7 +80,7 @@ static Vec2 force_boids(World *w, int index) {
         }
 
         if (dist_sq < cfg->separation_radius * cfg->separation_radius) {
-            Vec2 away = vec2_scale(vec2_normalize(vec2_scale(d, -1.0)), 1.0 / sqrt(dist_sq));
+            Vec2 away = vec2_scale(d, -1.0 / dist_sq);
             separation = vec2_add(separation, away);
             sep_count++;
         }
@@ -155,7 +155,7 @@ static Vec2 force_flee(World *w, int index, gboolean *is_fleeing) {
             continue;
         }
 
-        Vec2 away = vec2_scale(vec2_normalize(vec2_scale(d, -1.0)), 1.0 / sqrt(dist_sq));
+        Vec2 away = vec2_scale(d, -1.0 / dist_sq);
         fear = vec2_add(fear, away);
         fear_count++;
     }
@@ -235,7 +235,7 @@ static Vec2 force_same_species_avoid(World *w, int index) {
             continue;
         }
 
-        Vec2 push = vec2_scale(vec2_normalize(vec2_scale(d, -1.0)), 1.0 / sqrt(dist_sq));
+        Vec2 push = vec2_scale(d, -1.0 / dist_sq);
         away = vec2_add(away, push);
         count++;
     }
@@ -276,8 +276,10 @@ void entity_tick(struct World *w, int index) {
     }
     e->vel = vec2_limit(e->vel, speed_cap);
 
-    double speed = vec2_len(e->vel);
-    if (speed < entity_min_speed(e, cfg)) {
+    double speed_sq = vec2_len_sq(e->vel);
+    double min_speed = entity_min_speed(e, cfg);
+    if (speed_sq < min_speed * min_speed) {
+        double speed = sqrt(speed_sq);
         Vec2 dir = speed > 1e-6 ? vec2_scale(e->vel, 1.0 / speed) : vec2_random_unit();
         e->vel = vec2_scale(dir, rand_range(entity_min_speed(e, cfg), speed_cap));
     }
