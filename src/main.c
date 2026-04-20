@@ -1,7 +1,6 @@
 #include <gtk/gtk.h>
 
 #include <cairo.h>
-#include <math.h>
 #include <stdbool.h>
 
 #include "config.h"
@@ -49,34 +48,6 @@ static gboolean tick_cb(gpointer data) {
     return G_SOURCE_CONTINUE;
 }
 
-static void draw_arrow(cairo_t *cr, Vec2 start, Vec2 vec, double scale, double r, double g, double b) {
-    Vec2 end = {start.x + (vec.x * scale), start.y + (vec.y * scale)};
-    double dx = end.x - start.x;
-    double dy = end.y - start.y;
-    double len = sqrt((dx * dx) + (dy * dy));
-    if (len < 1e-3) {
-        return;
-    }
-
-    double ux = dx / len;
-    double uy = dy / len;
-    double head_len = 8.0;
-    double wing = 4.0;
-    Vec2 left = {end.x - (ux * head_len) + (-uy * wing), end.y - (uy * head_len) + (ux * wing)};
-    Vec2 right = {end.x - (ux * head_len) - (-uy * wing), end.y - (uy * head_len) - (ux * wing)};
-
-    cairo_set_source_rgba(cr, r, g, b, 0.96);
-    cairo_move_to(cr, start.x, start.y);
-    cairo_line_to(cr, end.x, end.y);
-    cairo_stroke(cr);
-
-    cairo_move_to(cr, end.x, end.y);
-    cairo_line_to(cr, left.x, left.y);
-    cairo_line_to(cr, right.x, right.y);
-    cairo_close_path(cr);
-    cairo_fill(cr);
-}
-
 static void debug_draw_cb(GtkDrawingArea *area, cairo_t *cr, int width, int height, gpointer user_data) {
     (void) area;
     (void) width;
@@ -110,25 +81,19 @@ static void debug_draw_cb(GtkDrawingArea *area, cairo_t *cr, int width, int heig
         cairo_rectangle(cr, bx, by, bw, bh);
         cairo_stroke(cr);
 
-        const SpeciesConfig *cfg = species_get(e->species);
-        if (cfg != 0) {
-            if (cfg->fear_radius > 0.0) {
-                cairo_set_source_rgba(cr, 1.0, 0.32, 0.32, 0.26);
-                cairo_arc(cr, e->pos.x, e->pos.y, cfg->fear_radius, 0.0, 6.28318530718);
-                cairo_stroke(cr);
-            }
-            if (cfg->hunt_radius > 0.0) {
-                cairo_set_source_rgba(cr, 0.77, 0.47, 1.0, 0.20);
-                cairo_arc(cr, e->pos.x, e->pos.y, cfg->hunt_radius, 0.0, 6.28318530718);
-                cairo_stroke(cr);
-            }
-        }
+        cairo_set_source_rgba(cr, 0.95, 0.95, 0.95, 0.95);
+        cairo_arc(cr, e->pos.x, e->pos.y, 2.0, 0.0, 6.28318530718);
+        cairo_fill(cr);
 
-        draw_arrow(cr, e->pos, e->dbg_force_sep, 46.0, 1.0, 0.42, 0.16);
-        draw_arrow(cr, e->pos, e->dbg_force_ali, 46.0, 0.17, 0.78, 1.0);
-        draw_arrow(cr, e->pos, e->dbg_force_coh, 46.0, 0.36, 1.0, 0.35);
-        draw_arrow(cr, e->pos, e->dbg_force_flee, 46.0, 1.0, 0.28, 0.80);
-        draw_arrow(cr, e->pos, e->dbg_force_sum, 36.0, 1.0, 1.0, 1.0);
+        cairo_set_source_rgba(cr, 0.20, 0.95, 0.33, 0.95);
+        cairo_move_to(cr, e->pos.x, e->pos.y);
+        cairo_line_to(cr, e->pos.x + (e->vel.x * 0.28), e->pos.y + (e->vel.y * 0.28));
+        cairo_stroke(cr);
+
+        cairo_set_source_rgba(cr, 1.0, 0.35, 0.35, 0.95);
+        cairo_move_to(cr, e->pos.x, e->pos.y);
+        cairo_line_to(cr, e->pos.x + (e->acc.x * 42.0), e->pos.y + (e->acc.y * 42.0));
+        cairo_stroke(cr);
     }
 
     cairo_set_source_rgba(cr, 0.10, 0.12, 0.16, 0.82);
@@ -142,7 +107,7 @@ static void debug_draw_cb(GtkDrawingArea *area, cairo_t *cr, int width, int heig
     cairo_set_source_rgb(cr, 0.86, 0.94, 1.0);
     cairo_set_font_size(cr, 12.0);
     cairo_move_to(cr, 20.0, 54.0);
-    cairo_show_text(cr, "Orange=sep, Blue=align, Green=coh, Pink=flee, White=sum");
+    cairo_show_text(cr, "Yellow=bounds, Green=velocity, Red=force");
 }
 
 static void toggle_fullscreen(AppState *app) {

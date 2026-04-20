@@ -48,13 +48,6 @@ typedef struct {
     double respawn_at;
     double speed_scale;
     double death_timer;
-
-    /* Debug-only force decomposition */
-    Vec2 dbg_force_sep;
-    Vec2 dbg_force_ali;
-    Vec2 dbg_force_coh;
-    Vec2 dbg_force_flee;
-    Vec2 dbg_force_sum;
 } Entity;
 
 struct World;

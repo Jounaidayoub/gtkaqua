@@ -72,11 +72,6 @@ int world_spawn(World *w, SpeciesKind kind, Vec2 pos, Vec2 vel) {
     e->respawn_at = 0.0;
     e->speed_scale = rand_range(0.82, 1.30);
     e->death_timer = 0.0;
-    e->dbg_force_sep = (Vec2) {0.0, 0.0};
-    e->dbg_force_ali = (Vec2) {0.0, 0.0};
-    e->dbg_force_coh = (Vec2) {0.0, 0.0};
-    e->dbg_force_flee = (Vec2) {0.0, 0.0};
-    e->dbg_force_sum = (Vec2) {0.0, 0.0};
     snprintf(e->css_class, sizeof(e->css_class), "entity-%d", e->id);
 
     e->widget = gtk_picture_new_for_filename(cfg->asset_path);
@@ -234,11 +229,6 @@ static void world_handle_respawns(World *w) {
             e->angle = heading_deg_from_vel(e->vel);
             e->speed_scale = rand_range(0.82, 1.30);
             e->death_timer = 0.0;
-            e->dbg_force_sep = (Vec2) {0.0, 0.0};
-            e->dbg_force_ali = (Vec2) {0.0, 0.0};
-            e->dbg_force_coh = (Vec2) {0.0, 0.0};
-            e->dbg_force_flee = (Vec2) {0.0, 0.0};
-            e->dbg_force_sum = (Vec2) {0.0, 0.0};
             if (e->widget != 0) {
                 gtk_widget_set_visible(e->widget, TRUE);
             }

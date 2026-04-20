@@ -93,15 +93,9 @@ static double entity_min_speed(const Entity *e, const SpeciesConfig *cfg) {
     return cfg->min_speed * e->speed_scale;
 }
 
-static void force_boids(World *w, int index, Vec2 *sep_out, Vec2 *ali_out, Vec2 *coh_out) {
+static Vec2 force_boids(World *w, int index) {
     Entity *self = &w->entities[index];
     const SpeciesConfig *cfg = species_get(self->species);
-    if (cfg == 0 || sep_out == 0 || ali_out == 0 || coh_out == 0) {
-        return;
-    }
-    *sep_out = (Vec2) {0.0, 0.0};
-    *ali_out = (Vec2) {0.0, 0.0};
-    *coh_out = (Vec2) {0.0, 0.0};
 
     Vec2 separation = {0.0, 0.0};
     Vec2 alignment = {0.0, 0.0};
@@ -143,18 +137,20 @@ static void force_boids(World *w, int index, Vec2 *sep_out, Vec2 *ali_out, Vec2 
         }
     }
 
+    Vec2 out = {0.0, 0.0};
+
     if (sep_count > 0) {
         separation = vec2_scale(separation, 1.0 / (double) sep_count);
         Vec2 desired = vec2_scale(vec2_normalize(separation), entity_max_speed(self, cfg));
         Vec2 steer = steer_toward(self->vel, desired, cfg->max_force);
-        *sep_out = vec2_scale(steer, cfg->separation_weight);
+        out = vec2_add(out, vec2_scale(steer, cfg->separation_weight));
     }
 
     if (ali_count > 0) {
         alignment = vec2_scale(alignment, 1.0 / (double) ali_count);
         Vec2 desired = vec2_scale(vec2_normalize(alignment), entity_max_speed(self, cfg));
         Vec2 steer = steer_toward(self->vel, desired, cfg->max_force);
-        *ali_out = vec2_scale(steer, cfg->alignment_weight);
+        out = vec2_add(out, vec2_scale(steer, cfg->alignment_weight));
     }
 
     if (coh_count > 0) {
@@ -162,8 +158,10 @@ static void force_boids(World *w, int index, Vec2 *sep_out, Vec2 *ali_out, Vec2 
         Vec2 to_center = vec2_sub(center, self->pos);
         Vec2 desired = vec2_scale(vec2_normalize(to_center), entity_max_speed(self, cfg));
         Vec2 steer = steer_toward(self->vel, desired, cfg->max_force);
-        *coh_out = vec2_scale(steer, cfg->cohesion_weight);
+        out = vec2_add(out, vec2_scale(steer, cfg->cohesion_weight));
     }
+
+    return out;
 }
 
 static Vec2 force_flee(World *w, int index, gboolean *is_fleeing) {
@@ -301,23 +299,13 @@ void entity_tick(struct World *w, int index) {
 
     e->age += w->dt;
     e->acc = (Vec2) {0.0, 0.0};
-    e->dbg_force_sep = (Vec2) {0.0, 0.0};
-    e->dbg_force_ali = (Vec2) {0.0, 0.0};
-    e->dbg_force_coh = (Vec2) {0.0, 0.0};
-    e->dbg_force_flee = (Vec2) {0.0, 0.0};
-    e->dbg_force_sum = (Vec2) {0.0, 0.0};
 
-    force_boids(w, index, &e->dbg_force_sep, &e->dbg_force_ali, &e->dbg_force_coh);
-    e->acc = vec2_add(e->acc, e->dbg_force_sep);
-    e->acc = vec2_add(e->acc, e->dbg_force_ali);
-    e->acc = vec2_add(e->acc, e->dbg_force_coh);
+    e->acc = vec2_add(e->acc, force_boids(w, index));
 
     gboolean fleeing = FALSE;
-    e->dbg_force_flee = force_flee(w, index, &fleeing);
-    e->acc = vec2_add(e->acc, e->dbg_force_flee);
+    e->acc = vec2_add(e->acc, force_flee(w, index, &fleeing));
     e->acc = vec2_add(e->acc, force_hunt(w, index));
     e->acc = vec2_add(e->acc, force_same_species_avoid(w, index));
-    e->dbg_force_sum = e->acc;
 
     e->acc = vec2_limit(e->acc, cfg->max_force * 4.0);
     e->vel = vec2_add(e->vel, vec2_scale(e->acc, w->dt));
