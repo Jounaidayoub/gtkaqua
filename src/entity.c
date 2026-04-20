@@ -26,6 +26,46 @@ static double clamp_double(double v, double min_v, double max_v) {
     return v;
 }
 
+gboolean entity_bounds_rect(const struct World *w, const Entity *e, double *x, double *y, double *width, double *height) {
+    if (w == 0 || e == 0 || x == 0 || y == 0 || width == 0 || height == 0) {
+        return FALSE;
+    }
+
+    const SpeciesConfig *cfg = species_get(e->species);
+    if (cfg == 0) {
+        return FALSE;
+    }
+
+    Vec2 head = entity_head_point(e, cfg);
+    Vec2 dir = vec2_normalize(e->vel);
+    if (vec2_len_sq(dir) < 1e-8) {
+        double rad = (e->angle - 180.0) * (M_PI / 180.0);
+        dir = (Vec2) {cos(rad), sin(rad)};
+    }
+
+    double head_offset = ((double) cfg->sprite_width * cfg->mouth_forward_ratio);
+    Vec2 center = vec2_sub(head, vec2_scale(dir, head_offset));
+
+    double draw_x = center.x - ((double) cfg->sprite_width * 0.5);
+    double draw_y = center.y - ((double) cfg->sprite_height * 0.5);
+    double max_x = w->width - (double) cfg->sprite_width;
+    double max_y = w->height - (double) cfg->sprite_height;
+    if (max_x < 0.0) {
+        max_x = 0.0;
+    }
+    if (max_y < 0.0) {
+        max_y = 0.0;
+    }
+    draw_x = clamp_double(draw_x, 0.0, max_x);
+    draw_y = clamp_double(draw_y, 0.0, max_y);
+
+    *x = draw_x;
+    *y = draw_y;
+    *width = (double) cfg->sprite_width;
+    *height = (double) cfg->sprite_height;
+    return TRUE;
+}
+
 static double heading_deg_from_vel(Vec2 vel) {
     return atan2(vel.y, vel.x) * (180.0 / M_PI) + 180.0;
 }
@@ -309,33 +349,13 @@ void entity_apply_visuals(struct World *w, int index) {
         return;
     }
 
-    const SpeciesConfig *cfg = species_get(e->species);
-    if (cfg == 0) {
+    double draw_x = 0.0;
+    double draw_y = 0.0;
+    double draw_w = 0.0;
+    double draw_h = 0.0;
+    if (!entity_bounds_rect(w, e, &draw_x, &draw_y, &draw_w, &draw_h)) {
         return;
     }
-
-    Vec2 head = entity_head_point(e, cfg);
-    Vec2 dir = vec2_normalize(e->vel);
-    if (vec2_len_sq(dir) < 1e-8) {
-        double rad = (e->angle - 180.0) * (M_PI / 180.0);
-        dir = (Vec2) {cos(rad), sin(rad)};
-    }
-
-    double head_offset = ((double) cfg->sprite_width * cfg->mouth_forward_ratio);
-    Vec2 center = vec2_sub(head, vec2_scale(dir, head_offset));
-
-    double draw_x = center.x - ((double) cfg->sprite_width * 0.5);
-    double draw_y = center.y - ((double) cfg->sprite_height * 0.5);
-    double max_x = w->width - (double) cfg->sprite_width;
-    double max_y = w->height - (double) cfg->sprite_height;
-    if (max_x < 0.0) {
-        max_x = 0.0;
-    }
-    if (max_y < 0.0) {
-        max_y = 0.0;
-    }
-    draw_x = clamp_double(draw_x, 0.0, max_x);
-    draw_y = clamp_double(draw_y, 0.0, max_y);
 
     gtk_fixed_move(GTK_FIXED(w->container), e->widget, draw_x, draw_y);
 

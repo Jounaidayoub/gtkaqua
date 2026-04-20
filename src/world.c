@@ -40,6 +40,7 @@ void world_init(World *w, GtkWidget *container, double width, double height) {
     w->dt = DT;
     w->elapsed = 0.0;
     w->next_id = 1;
+    w->debug_mode = false;
 
     for (int s = 0; s < SPECIES_COUNT; s++) {
         w->alive_counts[s] = 0;

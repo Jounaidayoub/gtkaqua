@@ -36,6 +36,9 @@ typedef struct World {
 
     /* Next time each species is allowed to respawn */
     double respawn_ready[SPECIES_COUNT];
+
+    /* Draw physics overlays (vectors, bounds, edges) when true */
+    bool debug_mode;
 } World;
 
 void world_init(World *w, GtkWidget *container, double width, double height);

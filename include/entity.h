@@ -55,5 +55,6 @@ struct World;
 void entity_tick(struct World *w, int index);
 void entity_apply_visuals(struct World *w, int index);
 Vec2 entity_head_point(const Entity *e, const SpeciesConfig *cfg);
+gboolean entity_bounds_rect(const struct World *w, const Entity *e, double *x, double *y, double *width, double *height);
 
 #endif
