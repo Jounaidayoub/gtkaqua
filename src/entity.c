@@ -300,12 +300,14 @@ void entity_tick(struct World *w, int index) {
 
 void entity_apply_visuals(struct World *w, int index) {
     Entity *e = &w->entities[index];
-    if (e->widget == 0) {
+    if (e->widget == 0 || !GTK_IS_WIDGET(e->widget)) {
         return;
     }
 
     if (e->state == ENTITY_INACTIVE) {
-        gtk_widget_set_visible(e->widget, FALSE);
+        if (GTK_IS_WIDGET(e->widget)) {
+            gtk_widget_set_visible(e->widget, FALSE);
+        }
         return;
     }
 
@@ -337,10 +339,13 @@ void entity_apply_visuals(struct World *w, int index) {
     draw_x = clamp_double(draw_x, 0.0, max_x);
     draw_y = clamp_double(draw_y, 0.0, max_y);
 
-    gtk_fixed_move(GTK_FIXED(w->container), e->widget, draw_x, draw_y);
+    if (w->container != 0 && GTK_IS_FIXED(w->container) && GTK_IS_WIDGET(e->widget)) {
+        gtk_fixed_move(GTK_FIXED(w->container), e->widget, draw_x, draw_y);
+    }
 
     if (e->css_provider != 0) {
         char css[224];
+        g_printerr("DEBUG: css_provider=%p id=%d state=%d\n", (void*)e->css_provider, e->id, e->state);
         if (e->state == ENTITY_DYING) {
             double pulse = fmod(e->death_timer * 24.0, 2.0) < 1.0 ? 1.0 : 0.0;
             double scale = 1.15 + (0.35 * pulse);
@@ -358,11 +363,18 @@ void entity_apply_visuals(struct World *w, int index) {
             if (e->death_timer <= 0.0) {
                 e->death_timer = 0.0;
                 e->state = ENTITY_INACTIVE;
-                gtk_widget_set_visible(e->widget, FALSE);
+                if (GTK_IS_WIDGET(e->widget)) {
+                    gtk_widget_set_visible(e->widget, FALSE);
+                }
             }
         } else {
             snprintf(css, sizeof(css), ".%s { transform: rotate(%.1fdeg); opacity: 1.0; }", e->css_class, e->angle);
         }
-        gtk_css_provider_load_from_string(e->css_provider, css);
+        g_printerr("DEBUG: css len=%zu css=%s\n", strlen(css), css);
+        if (GTK_IS_CSS_PROVIDER(e->css_provider)) {
+            gtk_css_provider_load_from_string(e->css_provider, css);
+        } else {
+            g_printerr("WARN: invalid css_provider for entity %d\n", e->id);
+        }
     }
 }

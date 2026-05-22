@@ -55,6 +55,7 @@ typedef struct {
     int prey_mask;
     double lifespan;
     int flock_size;
+    int max_population;
     double respawn_delay;
 } SpeciesConfig;
 

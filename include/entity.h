@@ -37,6 +37,8 @@ typedef struct {
 
     /* Lifecycle */
     double age;
+    /* Time (world elapsed) when this entity last ate something */
+    double last_eaten;
     EntityState state;
 
     /* GTK widget state */
@@ -48,6 +50,8 @@ typedef struct {
     double respawn_at;
     double speed_scale;
     double death_timer;
+    int anim_frame;
+    double anim_timer;
 } Entity;
 
 struct World;
