@@ -14,13 +14,37 @@
 #include "species.h"
 #include "vec2.h"
 
+typedef struct {
+    double  max_speed;
+    double  min_speed;
+    double  max_force;
+    double  separation_radius;
+    double  separation_weight;
+    double  alignment_radius;
+    double  alignment_weight;
+    double  cohesion_radius;
+    double  cohesion_weight;
+    double  fear_radius;
+    double  fear_weight;
+    double  hunt_radius;
+    double  hunt_weight;
+    double  avoid_same_radius;
+    double  avoid_same_weight;
+    double  lifespan;
+    double  respawn_delay;
+} EffectiveSpecies;
+
 typedef struct World {
     /* Entity storage */
     Entity entities[MAX_ENTITIES];
     int entity_count;
 
-    /* Per-species alive counters (used by respawn logic) */
-    int alive_counts[SPECIES_COUNT];
+    /* Live UI configuration */
+    int target_counts[MAX_SPECIES];
+    EffectiveSpecies effective[MAX_SPECIES];
+
+    /* Per-species alive counters */
+    int alive_counts[MAX_SPECIES];
 
     /* Simulation bounds */
     double width;
@@ -34,16 +58,13 @@ typedef struct World {
     double elapsed;
     int next_id;
 
-    /* Next time each species is allowed to respawn */
-    double respawn_ready[SPECIES_COUNT];
-
     /* Draw physics overlays (vectors, bounds, edges) when true */
     bool debug_mode;
 } World;
 
 void world_init(World *w, GtkWidget *container, double width, double height);
 void world_tick(World *w);
-int world_spawn(World *w, SpeciesKind kind, Vec2 pos, Vec2 vel);
+int  world_spawn(World *w, SpeciesKind kind, Vec2 pos, Vec2 vel);
 void world_despawn(World *w, int index);
 void world_populate(World *w);
 

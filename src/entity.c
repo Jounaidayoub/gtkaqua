@@ -17,24 +17,16 @@ static double rand_range(double min_v, double max_v) {
 }
 
 static double clamp_double(double v, double min_v, double max_v) {
-    if (v < min_v) {
-        return min_v;
-    }
-    if (v > max_v) {
-        return max_v;
-    }
+    if (v < min_v) return min_v;
+    if (v > max_v) return max_v;
     return v;
 }
 
 gboolean entity_bounds_rect(const struct World *w, const Entity *e, double *x, double *y, double *width, double *height) {
-    if (w == 0 || e == 0 || x == 0 || y == 0 || width == 0 || height == 0) {
-        return FALSE;
-    }
+    if (w == 0 || e == 0 || x == 0 || y == 0 || width == 0 || height == 0) return FALSE;
 
     const SpeciesConfig *cfg = species_get(e->species);
-    if (cfg == 0) {
-        return FALSE;
-    }
+    if (cfg == 0) return FALSE;
 
     Vec2 head = entity_head_point(e, cfg);
     Vec2 dir = vec2_normalize(e->vel);
@@ -50,12 +42,8 @@ gboolean entity_bounds_rect(const struct World *w, const Entity *e, double *x, d
     double draw_y = center.y - ((double) cfg->sprite_height * 0.5);
     double max_x = w->width - (double) cfg->sprite_width;
     double max_y = w->height - (double) cfg->sprite_height;
-    if (max_x < 0.0) {
-        max_x = 0.0;
-    }
-    if (max_y < 0.0) {
-        max_y = 0.0;
-    }
+    if (max_x < 0.0) max_x = 0.0;
+    if (max_y < 0.0) max_y = 0.0;
     draw_x = clamp_double(draw_x, 0.0, max_x);
     draw_y = clamp_double(draw_y, 0.0, max_y);
 
@@ -85,220 +73,168 @@ static Vec2 steer_toward(Vec2 current_vel, Vec2 desired_vel, double max_force) {
     return vec2_limit(steer, max_force);
 }
 
-static double entity_max_speed(const Entity *e, const SpeciesConfig *cfg) {
-    return cfg->max_speed * e->speed_scale;
+static double entity_max_speed(const Entity *e, const EffectiveSpecies *eff) {
+    return eff->max_speed * e->speed_scale;
 }
 
-static double entity_min_speed(const Entity *e, const SpeciesConfig *cfg) {
-    return cfg->min_speed * e->speed_scale;
+static double entity_min_speed(const Entity *e, const EffectiveSpecies *eff) {
+    return eff->min_speed * e->speed_scale;
 }
 
 static Vec2 force_boids(World *w, int index) {
     Entity *self = &w->entities[index];
-    const SpeciesConfig *cfg = species_get(self->species);
+    const EffectiveSpecies *eff = &w->effective[self->species];
 
     Vec2 separation = {0.0, 0.0};
-    Vec2 alignment = {0.0, 0.0};
+    Vec2 alignment  = {0.0, 0.0};
     Vec2 cohesion_sum = {0.0, 0.0};
-    int sep_count = 0;
-    int ali_count = 0;
-    int coh_count = 0;
+    int sep_count = 0, ali_count = 0, coh_count = 0;
 
     for (int i = 0; i < w->entity_count; i++) {
-        if (i == index) {
-            continue;
-        }
+        if (i == index) continue;
         Entity *other = &w->entities[i];
-        if (other->state != ENTITY_ALIVE || other->species != self->species) {
-            continue;
-        }
+        if (other->state != ENTITY_ALIVE || other->species != self->species) continue;
 
         Vec2 d = vec2_delta_wrap(self->pos, other->pos, w->width, w->height);
         double dist_sq = vec2_len_sq(d);
-        if (dist_sq < 1e-6) {
-            continue;
-        }
+        if (dist_sq < 1e-6) continue;
 
-        if (dist_sq < cfg->separation_radius * cfg->separation_radius) {
-            Vec2 away = vec2_scale(d, -1.0 / dist_sq);
-            separation = vec2_add(separation, away);
+        if (dist_sq < eff->separation_radius * eff->separation_radius) {
+            separation = vec2_add(separation, vec2_scale(d, -1.0 / dist_sq));
             sep_count++;
         }
-
-        if (dist_sq < cfg->alignment_radius * cfg->alignment_radius) {
+        if (dist_sq < eff->alignment_radius * eff->alignment_radius) {
             alignment = vec2_add(alignment, other->vel);
             ali_count++;
         }
-
-        if (dist_sq < cfg->cohesion_radius * cfg->cohesion_radius) {
-            Vec2 local = vec2_add(self->pos, d);
-            cohesion_sum = vec2_add(cohesion_sum, local);
+        if (dist_sq < eff->cohesion_radius * eff->cohesion_radius) {
+            cohesion_sum = vec2_add(cohesion_sum, vec2_add(self->pos, d));
             coh_count++;
         }
     }
 
     Vec2 out = {0.0, 0.0};
+    double max_spd = entity_max_speed(self, eff);
 
     if (sep_count > 0) {
-        separation = vec2_scale(separation, 1.0 / (double) sep_count);
-        Vec2 desired = vec2_scale(vec2_normalize(separation), entity_max_speed(self, cfg));
-        Vec2 steer = steer_toward(self->vel, desired, cfg->max_force);
-        out = vec2_add(out, vec2_scale(steer, cfg->separation_weight));
+        separation = vec2_scale(separation, 1.0 / sep_count);
+        Vec2 desired = vec2_scale(vec2_normalize(separation), max_spd);
+        out = vec2_add(out, vec2_scale(steer_toward(self->vel, desired, eff->max_force), eff->separation_weight));
     }
-
     if (ali_count > 0) {
-        alignment = vec2_scale(alignment, 1.0 / (double) ali_count);
-        Vec2 desired = vec2_scale(vec2_normalize(alignment), entity_max_speed(self, cfg));
-        Vec2 steer = steer_toward(self->vel, desired, cfg->max_force);
-        out = vec2_add(out, vec2_scale(steer, cfg->alignment_weight));
+        alignment = vec2_scale(alignment, 1.0 / ali_count);
+        Vec2 desired = vec2_scale(vec2_normalize(alignment), max_spd);
+        out = vec2_add(out, vec2_scale(steer_toward(self->vel, desired, eff->max_force), eff->alignment_weight));
     }
-
     if (coh_count > 0) {
-        Vec2 center = vec2_scale(cohesion_sum, 1.0 / (double) coh_count);
+        Vec2 center   = vec2_scale(cohesion_sum, 1.0 / coh_count);
         Vec2 to_center = vec2_sub(center, self->pos);
-        Vec2 desired = vec2_scale(vec2_normalize(to_center), entity_max_speed(self, cfg));
-        Vec2 steer = steer_toward(self->vel, desired, cfg->max_force);
-        out = vec2_add(out, vec2_scale(steer, cfg->cohesion_weight));
+        Vec2 desired  = vec2_scale(vec2_normalize(to_center), max_spd);
+        out = vec2_add(out, vec2_scale(steer_toward(self->vel, desired, eff->max_force), eff->cohesion_weight));
     }
-
     return out;
 }
 
 static Vec2 force_flee(World *w, int index, gboolean *is_fleeing) {
     Entity *self = &w->entities[index];
-    const SpeciesConfig *cfg = species_get(self->species);
+    const EffectiveSpecies *eff = &w->effective[self->species];
     Vec2 fear = {0.0, 0.0};
-    int fear_count = 0;
 
-    if (cfg->fear_radius <= 0.0 || cfg->fear_weight <= 0.0) {
-        *is_fleeing = FALSE;
-        return fear;
+    if (eff->fear_radius <= 0.0 || eff->fear_weight <= 0.0) {
+        *is_fleeing = FALSE; return fear;
     }
 
+    int fear_count = 0;
     for (int i = 0; i < w->entity_count; i++) {
-        if (i == index) {
-            continue;
-        }
+        if (i == index) continue;
         Entity *other = &w->entities[i];
-        if (other->state != ENTITY_ALIVE) {
-            continue;
-        }
-
+        if (other->state != ENTITY_ALIVE) continue;
         const SpeciesConfig *other_cfg = species_get(other->species);
-        if (!EATS(*other_cfg, self->species)) {
-            continue;
-        }
+        if (!other_cfg || !EATS(*other_cfg, self->species)) continue;
 
         Vec2 d = vec2_delta_wrap(self->pos, other->pos, w->width, w->height);
         double dist_sq = vec2_len_sq(d);
-        if (dist_sq >= cfg->fear_radius * cfg->fear_radius || dist_sq < 1e-8) {
-            continue;
-        }
+        if (dist_sq >= eff->fear_radius * eff->fear_radius || dist_sq < 1e-8) continue;
 
-        Vec2 away = vec2_scale(d, -1.0 / dist_sq);
-        fear = vec2_add(fear, away);
+        fear = vec2_add(fear, vec2_scale(d, -1.0 / dist_sq));
         fear_count++;
     }
 
-    if (fear_count == 0) {
-        *is_fleeing = FALSE;
-        return fear;
-    }
+    if (fear_count == 0) { *is_fleeing = FALSE; return fear; }
 
-    fear = vec2_scale(fear, 1.0 / (double) fear_count);
-    Vec2 desired = vec2_scale(vec2_normalize(fear), entity_max_speed(self, cfg) * ADRENALINE_BOOST);
-    Vec2 steer = steer_toward(self->vel, desired, cfg->max_force * ADRENALINE_BOOST);
+    fear = vec2_scale(fear, 1.0 / fear_count);
+    Vec2 desired = vec2_scale(vec2_normalize(fear),
+                              entity_max_speed(self, eff) * ADRENALINE_BOOST);
+    Vec2 steer = steer_toward(self->vel, desired, eff->max_force * ADRENALINE_BOOST);
     *is_fleeing = TRUE;
-    return vec2_scale(steer, cfg->fear_weight);
+    return vec2_scale(steer, eff->fear_weight);
 }
 
 static Vec2 force_hunt(World *w, int index) {
     Entity *self = &w->entities[index];
+    const EffectiveSpecies *eff = &w->effective[self->species];
     const SpeciesConfig *cfg = species_get(self->species);
-    if (cfg->hunt_radius <= 0.0 || cfg->hunt_weight <= 0.0 || cfg->prey_mask == 0) {
-        Vec2 z = {0.0, 0.0};
-        return z;
+    if (!cfg || eff->hunt_radius <= 0.0 || eff->hunt_weight <= 0.0 || cfg->prey_mask == 0) {
+        return (Vec2){0,0};
     }
 
     int nearest = -1;
-    double nearest_dist_sq = cfg->hunt_radius * cfg->hunt_radius;
+    double nearest_dist_sq = eff->hunt_radius * eff->hunt_radius;
 
     for (int i = 0; i < w->entity_count; i++) {
-        if (i == index) {
-            continue;
-        }
+        if (i == index) continue;
         Entity *other = &w->entities[i];
-        if (other->state != ENTITY_ALIVE || !EATS(*cfg, other->species)) {
-            continue;
-        }
+        if (other->state != ENTITY_ALIVE || !EATS(*cfg, other->species)) continue;
 
         double dist_sq = vec2_dist_sq_wrap(self->pos, other->pos, w->width, w->height);
-        if (dist_sq < nearest_dist_sq) {
-            nearest_dist_sq = dist_sq;
-            nearest = i;
-        }
+        if (dist_sq < nearest_dist_sq) { nearest_dist_sq = dist_sq; nearest = i; }
     }
 
-    if (nearest < 0) {
-        Vec2 z = {0.0, 0.0};
-        return z;
-    }
+    if (nearest < 0) return (Vec2){0,0};
 
-    Vec2 delta = vec2_delta_wrap(self->pos, w->entities[nearest].pos, w->width, w->height);
-    Vec2 desired = vec2_scale(vec2_normalize(delta), entity_max_speed(self, cfg));
-    Vec2 steer = steer_toward(self->vel, desired, cfg->max_force);
-    return vec2_scale(steer, cfg->hunt_weight);
+    Vec2 delta   = vec2_delta_wrap(self->pos, w->entities[nearest].pos, w->width, w->height);
+    Vec2 desired = vec2_scale(vec2_normalize(delta), entity_max_speed(self, eff));
+    Vec2 steer   = steer_toward(self->vel, desired, eff->max_force);
+    return vec2_scale(steer, eff->hunt_weight);
 }
 
 static Vec2 force_same_species_avoid(World *w, int index) {
     Entity *self = &w->entities[index];
-    const SpeciesConfig *cfg = species_get(self->species);
-    if (cfg == 0 || cfg->avoid_same_radius <= 0.0 || cfg->avoid_same_weight <= 0.0) {
-        return (Vec2) {0.0, 0.0};
-    }
+    const EffectiveSpecies *eff = &w->effective[self->species];
+    if (eff->avoid_same_radius <= 0.0 || eff->avoid_same_weight <= 0.0)
+        return (Vec2){0,0};
 
     Vec2 away = {0.0, 0.0};
     int count = 0;
 
     for (int i = 0; i < w->entity_count; i++) {
-        if (i == index) {
-            continue;
-        }
+        if (i == index) continue;
         Entity *other = &w->entities[i];
-        if (other->state != ENTITY_ALIVE || other->species != self->species) {
-            continue;
-        }
+        if (other->state != ENTITY_ALIVE || other->species != self->species) continue;
 
         Vec2 d = vec2_delta_wrap(self->pos, other->pos, w->width, w->height);
         double dist_sq = vec2_len_sq(d);
-        if (dist_sq < 1e-6 || dist_sq > cfg->avoid_same_radius * cfg->avoid_same_radius) {
-            continue;
-        }
+        if (dist_sq < 1e-6 || dist_sq > eff->avoid_same_radius * eff->avoid_same_radius) continue;
 
-        Vec2 push = vec2_scale(d, -1.0 / dist_sq);
-        away = vec2_add(away, push);
+        away = vec2_add(away, vec2_scale(d, -1.0 / dist_sq));
         count++;
     }
 
-    if (count == 0) {
-        return (Vec2) {0.0, 0.0};
-    }
+    if (count == 0) return (Vec2){0,0};
 
-    away = vec2_scale(away, 1.0 / (double) count);
-    Vec2 desired = vec2_scale(vec2_normalize(away), entity_max_speed(self, cfg));
-    Vec2 steer = steer_toward(self->vel, desired, cfg->max_force * 1.5);
-    return vec2_scale(steer, cfg->avoid_same_weight);
+    away = vec2_scale(away, 1.0 / count);
+    Vec2 desired = vec2_scale(vec2_normalize(away), entity_max_speed(self, eff));
+    Vec2 steer   = steer_toward(self->vel, desired, eff->max_force * 1.5);
+    return vec2_scale(steer, eff->avoid_same_weight);
 }
 
 void entity_tick(struct World *w, int index) {
     Entity *e = &w->entities[index];
-    const SpeciesConfig *cfg = species_get(e->species);
-    if (e->state != ENTITY_ALIVE || cfg == 0) {
-        return;
-    }
+    const EffectiveSpecies *eff = &w->effective[e->species];
+    if (e->state != ENTITY_ALIVE) return;
 
     e->age += w->dt;
-    e->acc = (Vec2) {0.0, 0.0};
+    e->acc  = (Vec2) {0.0, 0.0};
 
     e->acc = vec2_add(e->acc, force_boids(w, index));
 
@@ -307,21 +243,19 @@ void entity_tick(struct World *w, int index) {
     e->acc = vec2_add(e->acc, force_hunt(w, index));
     e->acc = vec2_add(e->acc, force_same_species_avoid(w, index));
 
-    e->acc = vec2_limit(e->acc, cfg->max_force * 4.0);
+    e->acc = vec2_limit(e->acc, eff->max_force * 4.0);
     e->vel = vec2_add(e->vel, vec2_scale(e->acc, w->dt));
 
-    double speed_cap = entity_max_speed(e, cfg);
-    if (fleeing) {
-        speed_cap *= ADRENALINE_BOOST;
-    }
+    double speed_cap = entity_max_speed(e, eff);
+    if (fleeing) speed_cap *= ADRENALINE_BOOST;
     e->vel = vec2_limit(e->vel, speed_cap);
 
-    double speed_sq = vec2_len_sq(e->vel);
-    double min_speed = entity_min_speed(e, cfg);
+    double speed_sq  = vec2_len_sq(e->vel);
+    double min_speed = entity_min_speed(e, eff);
     if (speed_sq < min_speed * min_speed) {
         double speed = sqrt(speed_sq);
         Vec2 dir = speed > 1e-6 ? vec2_scale(e->vel, 1.0 / speed) : vec2_random_unit();
-        e->vel = vec2_scale(dir, rand_range(entity_min_speed(e, cfg), speed_cap));
+        e->vel = vec2_scale(dir, rand_range(min_speed, speed_cap));
     }
 
     e->pos = vec2_add(e->pos, vec2_scale(e->vel, w->dt));
@@ -329,12 +263,8 @@ void entity_tick(struct World *w, int index) {
 
     double target_deg = heading_deg_from_vel(e->vel);
     double diff = target_deg - e->angle;
-    while (diff > 180.0) {
-        diff -= 360.0;
-    }
-    while (diff < -180.0) {
-        diff += 360.0;
-    }
+    while (diff >  180.0) diff -= 360.0;
+    while (diff < -180.0) diff += 360.0;
     e->angle += diff * ROTATION_SMOOTH;
 }
 

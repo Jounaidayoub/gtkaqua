@@ -1,229 +1,217 @@
 #include "species.h"
 
-#define MASK(kind) (1 << (kind))
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-static const SpeciesConfig SPECIES_TABLE[SPECIES_COUNT] = {
-    [SPECIES_GOLDFISH] = {
-        .kind = SPECIES_GOLDFISH,
-        .name = "Goldfish",
-        .asset_path = "assets/goldfish.png",
-        .sprite_width = 46,
-        .sprite_height = 23,
-        .mouth_forward_ratio = 0.40,
-        .max_speed = 85.0,
-        .min_speed = 30.0,
-        .max_force = 42.0,
-        .separation_radius = 24.0,
-        .alignment_radius = 120.0,
-        .cohesion_radius = 100.0,
-        .separation_weight = 1.6,
-        .alignment_weight = 1.35,
-        .cohesion_weight = 1.45,
-        .fear_radius = 190.0,
-        .fear_weight = 2.5,
-        .hunt_radius = 0.0,
-        .hunt_weight = 0.0,
-        .avoid_same_radius = 0.0,
-        .avoid_same_weight = 0.0,
-        .prey_mask = 0,
-        .lifespan = 120.0,
-        .flock_size = 45,
-        .respawn_delay = 1.5,
-    },
-    [SPECIES_CLOWNFISH] = {
-        .kind = SPECIES_CLOWNFISH,
-        .name = "Clownfish",
-        .asset_path = "assets/clownfish.png",
-        .sprite_width = 72,
-        .sprite_height = 42,
-        .mouth_forward_ratio = 0.40,
-        .max_speed = 90.0,
-        .min_speed = 32.0,
-        .max_force = 45.0,
-        .separation_radius = 34.0,
-        .alignment_radius = 115.0,
-        .cohesion_radius = 125.0,
-        .separation_weight = 1.7,
-        .alignment_weight = 1.35,
-        .cohesion_weight = 1.45,
-        .fear_radius = 195.0,
-        .fear_weight = 2.6,
-        .hunt_radius = 0.0,
-        .hunt_weight = 0.0,
-        .avoid_same_radius = 0.0,
-        .avoid_same_weight = 0.0,
-        .prey_mask = 0,
-        .lifespan = 120.0,
-        .flock_size = 0,
-        .respawn_delay = 1.5,
-    },
-    [SPECIES_ANGELFISH] = {
-        .kind = SPECIES_ANGELFISH,
-        .name = "Angelfish",
-        .asset_path = "assets/angelfish.png",
-        .sprite_width = 78,
-        .sprite_height = 74,
-        .mouth_forward_ratio = 0.40,
-        .max_speed = 95.0,
-        .min_speed = 34.0,
-        .max_force = 44.0,
-        .separation_radius = 38.0,
-        .alignment_radius = 130.0,
-        .cohesion_radius = 142.0,
-        .separation_weight = 1.5,
-        .alignment_weight = 1.25,
-        .cohesion_weight = 1.3,
-        .fear_radius = 210.0,
-        .fear_weight = 2.5,
-        .hunt_radius = 0.0,
-        .hunt_weight = 0.0,
-        .avoid_same_radius = 0.0,
-        .avoid_same_weight = 0.0,
-        .prey_mask = 0,
-        .lifespan = 150.0,
-        .flock_size = 0,
-        .respawn_delay = 2.0,
-    },
-    [SPECIES_BARRACUDA] = {
-        .kind = SPECIES_BARRACUDA,
-        .name = "Barracuda",
-        .asset_path = "assets/barracuda.png",
-        .sprite_width = 96,
-        .sprite_height = 38,
-        .mouth_forward_ratio = 0.42,
-        .max_speed = 130.0,
-        .min_speed = 40.0,
-        .max_force = 60.0,
-        .separation_radius = 56.0,
-        .alignment_radius = 100.0,
-        .cohesion_radius = 112.0,
-        .separation_weight = 1.3,
-        .alignment_weight = 0.8,
-        .cohesion_weight = 0.6,
-        .fear_radius = 230.0,
-        .fear_weight = 1.5,
-        .hunt_radius = 300.0,
-        .hunt_weight = 2.7,
-        .avoid_same_radius = 90.0,
-        .avoid_same_weight = 0.8,
-        .prey_mask = MASK(SPECIES_GOLDFISH) | MASK(SPECIES_CLOWNFISH),
-        .lifespan = 200.0,
-        .flock_size = 0,
-        .respawn_delay = 4.0,
-    },
-    [SPECIES_BASS] = {
-        .kind = SPECIES_BASS,
-        .name = "Bass",
-        .asset_path = "assets/bass.png",
-        .sprite_width = 84,
-        .sprite_height = 52,
-        .mouth_forward_ratio = 0.42,
-        .max_speed = 112.0,
-        .min_speed = 36.0,
-        .max_force = 53.0,
-        .separation_radius = 48.0,
-        .alignment_radius = 96.0,
-        .cohesion_radius = 108.0,
-        .separation_weight = 1.4,
-        .alignment_weight = 0.8,
-        .cohesion_weight = 0.7,
-        .fear_radius = 245.0,
-        .fear_weight = 1.7,
-        .hunt_radius = 290.0,
-        .hunt_weight = 2.4,
-        .avoid_same_radius = 80.0,
-        .avoid_same_weight = 0.7,
-        .prey_mask = MASK(SPECIES_GOLDFISH) | MASK(SPECIES_CLOWNFISH),
-        .lifespan = 180.0,
-        .flock_size = 0,
-        .respawn_delay = 4.5,
-    },
-    [SPECIES_TROUT] = {
-        .kind = SPECIES_TROUT,
-        .name = "Trout",
-        .asset_path = "assets/trout.png",
-        .sprite_width = 84,
-        .sprite_height = 48,
-        .mouth_forward_ratio = 0.42,
-        .max_speed = 110.0,
-        .min_speed = 36.0,
-        .max_force = 52.0,
-        .separation_radius = 44.0,
-        .alignment_radius = 94.0,
-        .cohesion_radius = 106.0,
-        .separation_weight = 1.4,
-        .alignment_weight = 0.9,
-        .cohesion_weight = 0.7,
-        .fear_radius = 240.0,
-        .fear_weight = 1.8,
-        .hunt_radius = 270.0,
-        .hunt_weight = 2.25,
-        .avoid_same_radius = 75.0,
-        .avoid_same_weight = 0.7,
-        .prey_mask = MASK(SPECIES_GOLDFISH),
-        .lifespan = 180.0,
-        .flock_size = 0,
-        .respawn_delay = 4.5,
-    },
-    [SPECIES_TUNA] = {
-        .kind = SPECIES_TUNA,
-        .name = "Tuna",
-        .asset_path = "assets/tuna.png",
-        .sprite_width = 90,
-        .sprite_height = 54,
-        .mouth_forward_ratio = 0.42,
-        .max_speed = 125.0,
-        .min_speed = 40.0,
-        .max_force = 56.0,
-        .separation_radius = 52.0,
-        .alignment_radius = 100.0,
-        .cohesion_radius = 114.0,
-        .separation_weight = 1.3,
-        .alignment_weight = 0.8,
-        .cohesion_weight = 0.6,
-        .fear_radius = 250.0,
-        .fear_weight = 1.7,
-        .hunt_radius = 320.0,
-        .hunt_weight = 2.5,
-        .avoid_same_radius = 85.0,
-        .avoid_same_weight = 0.8,
-        .prey_mask = MASK(SPECIES_GOLDFISH) | MASK(SPECIES_CLOWNFISH),
-        .lifespan = 200.0,
-        .flock_size = 4,
-        .respawn_delay = 5.0,
-    },
-    [SPECIES_SHARK] = {
-        .kind = SPECIES_SHARK,
-        .name = "Shark",
-        .asset_path = "assets/shark.png",
-        .sprite_width = 190,
-        .sprite_height = 96,
-        .mouth_forward_ratio = 0.43,
-        .max_speed = 145.0,
-        .min_speed = 44.0,
-        .max_force = 62.0,
-        .separation_radius = 76.0,
-        .alignment_radius = 130.0,
-        .cohesion_radius = 140.0,
-        .separation_weight = 1.1,
-        .alignment_weight = 0.6,
-        .cohesion_weight = 0.4,
-        .fear_radius = 0.0,
-        .fear_weight = 0.0,
-        .hunt_radius = 430.0,
-        .hunt_weight = 3.2,
-        .avoid_same_radius = 220.0,
-        .avoid_same_weight = 3.4,
-        .prey_mask = MASK(SPECIES_TUNA) | MASK(SPECIES_BASS) | MASK(SPECIES_TROUT) | MASK(SPECIES_ANGELFISH) | MASK(SPECIES_GOLDFISH),
-        .lifespan = 300.0,
-        .flock_size = 2,
-        .respawn_delay = 6.0,
-    },
-};
+#include "toml.h"
+
+static SpeciesConfig SPECIES[MAX_SPECIES];
+static int SPECIES_N = 0;
+
+static uint64_t mask_for(int kind) {
+    return (kind >= 0 && kind < 64) ? (1ULL << (uint64_t) kind) : 0;
+}
+
+static void add_default(
+    const char *key,
+    const char *name,
+    const char *asset_path,
+    int sprite_width,
+    int sprite_height,
+    double mouth_forward_ratio,
+    double max_speed,
+    double min_speed,
+    double max_force,
+    double separation_radius,
+    double alignment_radius,
+    double cohesion_radius,
+    double separation_weight,
+    double alignment_weight,
+    double cohesion_weight,
+    double fear_radius,
+    double fear_weight,
+    double hunt_radius,
+    double hunt_weight,
+    double avoid_same_radius,
+    double avoid_same_weight,
+    uint64_t prey_mask,
+    double lifespan,
+    int flock_size,
+    double respawn_delay
+) {
+    if (SPECIES_N >= MAX_SPECIES) return;
+    SpeciesConfig *s = &SPECIES[SPECIES_N++];
+    memset(s, 0, sizeof(*s));
+    snprintf(s->key, sizeof(s->key), "%s", key);
+    snprintf(s->name, sizeof(s->name), "%s", name);
+    snprintf(s->asset_path, sizeof(s->asset_path), "%s", asset_path);
+    s->sprite_width = sprite_width;
+    s->sprite_height = sprite_height;
+    s->mouth_forward_ratio = mouth_forward_ratio;
+    s->max_speed = max_speed;
+    s->min_speed = min_speed;
+    s->max_force = max_force;
+    s->separation_radius = separation_radius;
+    s->alignment_radius = alignment_radius;
+    s->cohesion_radius = cohesion_radius;
+    s->separation_weight = separation_weight;
+    s->alignment_weight = alignment_weight;
+    s->cohesion_weight = cohesion_weight;
+    s->fear_radius = fear_radius;
+    s->fear_weight = fear_weight;
+    s->hunt_radius = hunt_radius;
+    s->hunt_weight = hunt_weight;
+    s->avoid_same_radius = avoid_same_radius;
+    s->avoid_same_weight = avoid_same_weight;
+    s->prey_mask = prey_mask;
+    s->lifespan = lifespan;
+    s->flock_size = flock_size;
+    s->respawn_delay = respawn_delay;
+}
+
+void species_load_defaults(void) {
+    SPECIES_N = 0;
+
+    enum { GOLDFISH, CLOWNFISH, ANGELFISH, BARRACUDA, BASS, TROUT, TUNA, SHARK };
+
+    add_default("goldfish", "Goldfish", "assets/goldfish.png", 46, 23, 0.40, 85, 30, 42, 24, 120, 100, 1.6, 1.35, 1.45, 190, 2.5, 0, 0, 0, 0, 0, 120, 45, 1.5);
+    add_default("clownfish", "Clownfish", "assets/clownfish.png", 72, 42, 0.40, 90, 32, 45, 34, 115, 125, 1.7, 1.35, 1.45, 195, 2.6, 0, 0, 0, 0, 0, 120, 0, 1.5);
+    add_default("angelfish", "Angelfish", "assets/angelfish.png", 30, 39, 0.40, 95, 34, 44, 38, 130, 142, 1.5, 1.25, 1.3, 210, 2.5, 0, 0, 0, 0, 0, 150, 10, 2.0);
+    add_default("barracuda", "Barracuda", "assets/barracuda.png", 96, 38, 0.42, 130, 40, 60, 56, 100, 112, 1.3, 0.8, 0.6, 230, 1.5, 300, 2.7, 90, 0.8, mask_for(GOLDFISH) | mask_for(CLOWNFISH), 200, 0, 4.0);
+    add_default("bass", "Bass", "assets/bass.png", 60, 32, 0.42, 112, 36, 53, 48, 96, 108, 1.4, 0.8, 0.7, 245, 1.7, 290, 2.4, 80, 0.7, mask_for(GOLDFISH) | mask_for(CLOWNFISH), 180, 5, 4.5);
+    add_default("trout", "Trout", "assets/trout.png", 84, 48, 0.42, 110, 36, 52, 44, 94, 106, 1.4, 0.9, 0.7, 240, 1.8, 270, 2.25, 75, 0.7, mask_for(GOLDFISH), 180, 0, 4.5);
+    add_default("tuna", "Tuna", "assets/tuna.png", 90, 54, 0.42, 125, 40, 56, 52, 100, 114, 1.3, 0.8, 0.6, 250, 1.7, 320, 2.5, 85, 0.8, mask_for(GOLDFISH) | mask_for(CLOWNFISH), 200, 4, 5.0);
+    add_default("shark", "Shark", "assets/shark.png", 190, 96, 0.43, 145, 44, 62, 76, 130, 140, 1.1, 0.6, 0.4, 0, 0, 430, 3.2, 220, 3.4, mask_for(TUNA) | mask_for(BASS) | mask_for(TROUT) | mask_for(ANGELFISH) | mask_for(GOLDFISH), 300, 2, 6.0);
+}
+
+int species_count(void) {
+    return SPECIES_N;
+}
 
 const SpeciesConfig *species_get(SpeciesKind kind) {
-    if (kind < 0 || kind >= SPECIES_COUNT) {
-        return 0;
+    if (kind < 0 || kind >= SPECIES_N) return NULL;
+    return &SPECIES[kind];
+}
+
+SpeciesConfig *species_get_mut(SpeciesKind kind) {
+    if (kind < 0 || kind >= SPECIES_N) return NULL;
+    return &SPECIES[kind];
+}
+
+SpeciesKind species_find_key(const char *key) {
+    if (!key) return -1;
+    for (int i = 0; i < SPECIES_N; i++) {
+        if (strcmp(SPECIES[i].key, key) == 0) return i;
     }
-    return &SPECIES_TABLE[kind];
+    return -1;
+}
+
+static void read_string(toml_table_t *t, const char *key, char *out, size_t out_sz) {
+    toml_datum_t d = toml_string_in(t, key);
+    if (!d.ok) return;
+    snprintf(out, out_sz, "%s", d.u.s);
+    free(d.u.s);
+}
+
+static void read_int(toml_table_t *t, const char *key, int *out) {
+    toml_datum_t d = toml_int_in(t, key);
+    if (d.ok) *out = (int) d.u.i;
+}
+
+static void read_double(toml_table_t *t, const char *key, double *out) {
+    toml_datum_t d = toml_double_in(t, key);
+    if (d.ok) {
+        *out = d.u.d;
+        return;
+    }
+    d = toml_int_in(t, key);
+    if (d.ok) *out = (double) d.u.i;
+}
+
+static void parse_species_table(const char *key, toml_table_t *t, SpeciesConfig *s) {
+    memset(s, 0, sizeof(*s));
+    snprintf(s->key, sizeof(s->key), "%s", key);
+    snprintf(s->name, sizeof(s->name), "%s", key);
+
+    read_string(t, "name", s->name, sizeof(s->name));
+    read_string(t, "asset_path", s->asset_path, sizeof(s->asset_path));
+    read_int(t, "count", &s->flock_size);
+    read_int(t, "sprite_width", &s->sprite_width);
+    read_int(t, "sprite_height", &s->sprite_height);
+    read_double(t, "mouth_forward_ratio", &s->mouth_forward_ratio);
+    read_double(t, "max_speed", &s->max_speed);
+    read_double(t, "min_speed", &s->min_speed);
+    read_double(t, "max_force", &s->max_force);
+    read_double(t, "separation_radius", &s->separation_radius);
+    read_double(t, "alignment_radius", &s->alignment_radius);
+    read_double(t, "cohesion_radius", &s->cohesion_radius);
+    read_double(t, "separation_weight", &s->separation_weight);
+    read_double(t, "alignment_weight", &s->alignment_weight);
+    read_double(t, "cohesion_weight", &s->cohesion_weight);
+    read_double(t, "fear_radius", &s->fear_radius);
+    read_double(t, "fear_weight", &s->fear_weight);
+    read_double(t, "hunt_radius", &s->hunt_radius);
+    read_double(t, "hunt_weight", &s->hunt_weight);
+    read_double(t, "avoid_same_radius", &s->avoid_same_radius);
+    read_double(t, "avoid_same_weight", &s->avoid_same_weight);
+    read_double(t, "lifespan", &s->lifespan);
+    read_double(t, "respawn_delay", &s->respawn_delay);
+}
+
+bool species_load_toml(const char *path) {
+    FILE *fp = fopen(path, "r");
+    if (!fp) return false;
+
+    char errbuf[256];
+    toml_table_t *root = toml_parse_file(fp, errbuf, sizeof(errbuf));
+    fclose(fp);
+    if (!root) {
+        fprintf(stderr, "Failed to parse %s: %s\n", path, errbuf);
+        return false;
+    }
+
+    toml_table_t *species = toml_table_in(root, "species");
+    if (!species) {
+        toml_free(root);
+        return false;
+    }
+
+    SpeciesConfig loaded[MAX_SPECIES];
+    int loaded_n = 0;
+
+    int n = toml_table_ntab(species);
+    for (int i = 0; i < n && loaded_n < MAX_SPECIES; i++) {
+        const char *key = toml_key_in(species, i);
+        toml_table_t *table = key ? toml_table_in(species, key) : NULL;
+        if (!key || !table) continue;
+        parse_species_table(key, table, &loaded[loaded_n++]);
+    }
+
+    for (int i = 0; i < loaded_n; i++) {
+        const char *key = loaded[i].key;
+        toml_table_t *table = toml_table_in(species, key);
+        toml_array_t *prey = table ? toml_array_in(table, "prey") : NULL;
+        if (!prey) continue;
+        int prey_n = toml_array_nelem(prey);
+        for (int p = 0; p < prey_n; p++) {
+            toml_datum_t d = toml_string_at(prey, p);
+            if (!d.ok) continue;
+            for (int j = 0; j < loaded_n; j++) {
+                if (strcmp(loaded[j].key, d.u.s) == 0) {
+                    loaded[i].prey_mask |= mask_for(j);
+                    break;
+                }
+            }
+            free(d.u.s);
+        }
+    }
+
+    if (loaded_n > 0) {
+        memcpy(SPECIES, loaded, sizeof(SpeciesConfig) * (size_t) loaded_n);
+        SPECIES_N = loaded_n;
+    }
+
+    toml_free(root);
+    return loaded_n > 0;
 }
