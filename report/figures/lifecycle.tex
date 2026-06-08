@@ -1,0 +1,37 @@
+% Cycle de vie d'une entité : automate à 3 états.
+\begin{tikzpicture}[
+  ->, >=Stealth, thick,
+  node distance = 4.5cm,
+  every state/.style = {
+    minimum size = 1.8cm,
+    align = center,
+    font = \small\ttfamily,
+    draw = black,
+    thick
+  },
+  alive/.style    = {state, fill=green!15},
+  dying/.style    = {state, fill=orange!25},
+  inactive/.style = {state, fill=gray!20}
+]
+
+\node[alive]    (alive)    {ALIVE};
+\node[dying, right of=alive]    (dying)    {DYING};
+\node[inactive, right of=dying] (inactive) {INACTIVE};
+
+% Self-loop sur ALIVE (tick normal)
+\path (alive) edge[loop above]
+  node[font=\footnotesize, align=center]{tick normal\\(boids, manger, fuir)} (alive);
+
+% ALIVE -> DYING : world_despawn
+\path (alive) edge[bend left=15]
+  node[above, font=\footnotesize, align=center]{world\_despawn() \\ (mangé / famine)} (dying);
+
+% DYING -> INACTIVE : death_timer expiré
+\path (dying) edge[bend left=15]
+  node[above, font=\footnotesize, align=center]{death\_timer\\$\leq 0$} (inactive);
+
+% INACTIVE -> ALIVE : respawn
+\path (inactive) edge[bend left=45]
+  node[below, font=\footnotesize, align=center]{respawn\_ready $\leq$ elapsed\\$\land$ alive\_count $<$ flock\_size} (alive);
+
+\end{tikzpicture}

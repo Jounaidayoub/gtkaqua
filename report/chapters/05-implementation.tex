@@ -1,0 +1,468 @@
+\chapter{Implémentation}
+\label{chap:implementation}
+
+\section{Environnement et chaîne de compilation}
+
+Le projet est écrit en C~11 et compilé avec \code{gcc} (ou
+\code{clang}) en utilisant un \file{Makefile} GNU classique. Les
+options de compilation par défaut sont~:
+
+\begin{minted}{make}
+CFLAGS ?= -std=c11 -O2 -Wall -Wextra -Wpedantic
+\end{minted}
+
+Les drapeaux GTK4 sont obtenus dynamiquement via \code{pkg-config}~:
+
+\begin{minted}{make}
+GTK_CFLAGS := $(shell $(PKG_CONFIG) --cflags gtk4)
+GTK_LIBS   := $(shell $(PKG_CONFIG) --libs gtk4)
+\end{minted}
+
+L'arborescence du \emph{build} est~:
+
+\begin{itemize}
+  \item \file{build/obj/} reçoit les fichiers objets~;
+  \item \file{build/bin/aquarium} est le binaire final~;
+  \item \file{vendor/tomlc99/} contient \file{toml.h}, \file{toml.c}
+    et la licence MIT du parseur.
+\end{itemize}
+
+Une cible \code{install-conf} du \file{Makefile} copie
+\file{aquarium.conf} dans \file{\textasciitilde/.config/gtkaqua/}
+pour faciliter l'usage du \emph{fallback} système.
+
+\section{Pipeline d'assets}
+
+Les sprites bruts vivent dans \file{Fish/} (formats \file{webp}
+ou \file{png}). La cible \code{make assets} les normalise vers
+\file{assets/} en garantissant qu'ils sont tous orientés vers la
+gauche. Pour les fichiers d'origine déjà gauche, la commande se
+limite à un redimensionnement~; pour les fichiers déjà droite, un
+flip horizontal est appliqué via \code{ffmpeg}~\cite{ffmpeg}~:
+
+\begin{minted}{make}
+ffmpeg -i $(FISH_DIR)/shark.webp -vf "scale=100:-1" \
+        -frames:v 1 -y $(ASSET_DIR)/shark.png
+ffmpeg -i $(FISH_DIR)/fish1Texture.png -vf "hflip" \
+        -frames:v 1 -y $(ASSET_DIR)/goldfish.png
+\end{minted}
+
+Cette discipline d'orientation est documentée dans le
+\file{README.md}~: au moment du runtime, le code suppose que tous
+les sprites pointent à gauche. La rotation de chaque sprite est
+ensuite produite par une transformation CSS GTK4 sur le widget,
+sans réchantillonnage de l'image.
+
+\section{Algorithmes clés}
+
+Cette section présente les fonctions centrales du moteur de
+simulation. Pour des raisons de place, on extrait les passages
+significatifs~; le code complet est disponible en annexe et dans
+le dépôt.
+
+\subsection{Boucle de tick}
+
+La fonction \func{world\_tick} orchestre une itération complète
+de la simulation. Elle est listée dans le code~\ref{lst:world-tick}.
+
+\begin{listing}[h!]
+\inputminted[firstline=298, lastline=313]{c}{../src/world.c}
+\caption{La fonction \func{world\_tick} (extrait de \file{src/world.c}).}
+\label{lst:world-tick}
+\end{listing}
+
+L'ordre est important~: déplacement physique, puis interactions
+(repas, famine), puis mise à jour visuelle, puis gestion des
+respawns. Cette séquence évite les races logiques entre événements
+du même tick.
+
+\subsection{Forces de Reynolds}
+
+Le calcul des trois forces de banc (séparation, alignement,
+cohésion) constitue le cœur algorithmique du moteur. Le code
+parcourt tous les voisins de la \emph{même} espèce dans le rayon
+correspondant à chaque force, accumule les contributions, puis
+construit un vecteur de \emph{steering} pondéré par les coefficients
+de la \struct{SpeciesConfig}.
+
+\begin{listing}[ht]
+\inputminted[firstline=56, lastline=125]{c}{../src/entity.c}
+\caption{Calcul des trois forces de banc (extrait de \file{src/entity.c}).}
+\label{lst:force-boids}
+\end{listing}
+
+Trois remarques sur ce code~:
+
+\begin{itemize}
+  \item Les distances sont comparées au carré
+    (\code{dist\_sq < radius * radius}), ce qui évite un
+    \code{sqrt} par voisin et constitue une optimisation
+    classique.
+  \item L'\emph{enveloppement torique} du monde est pris en
+    compte via \func{vec2\_delta\_wrap}, qui choisit le delta
+    minimum entre deux points à travers les bords.
+  \item Le vecteur de séparation est pondéré par
+    $1/\|\vec{r}\|^2$, ce qui rend la force d'autant plus forte
+    que les voisins sont proches~: c'est la formulation classique
+    de Reynolds.
+\end{itemize}
+
+\subsection{Force de fuite avec adrénaline}
+
+La fuite face à un prédateur est implémentée par
+\func{force\_flee}. Lorsqu'au moins un prédateur entre dans le
+\code{fear\_radius} de l'agent, sa vitesse maximale et sa force
+maximale sont multipliées par le facteur \code{g\_adrenaline\_boost}
+(2.5 par défaut), ce qui rend la fuite beaucoup plus rapide que
+le déplacement nominal.
+
+\begin{listing}[ht]
+\inputminted[firstline=127, lastline=173]{c}{../src/entity.c}
+\caption{Force de fuite avec boost d'adrénaline (extrait de \file{src/entity.c}).}
+\label{lst:force-flee}
+\end{listing}
+
+Le test \func{EATS} sur la ligne pivot de cette fonction reflète
+exactement la définition donnée dans \file{species.h}~:
+
+\begin{minted}{c}
+#define EATS(predator_cfg, prey_index) \
+        ((predator_cfg).prey_mask & (1 << (prey_index)))
+\end{minted}
+
+\subsection{Alimentation par la bouche}
+
+Plutôt que de tester une collision centre-à-centre entre
+prédateur et proie, le projet utilise une \emph{mouth-based
+collision}~: le point d'attaque est dérivé du cap du prédateur,
+selon le ratio \code{mouth\_forward\_ratio}.
+
+\begin{listing}[h!]
+\inputminted[firstline=33, lastline=41]{c}{../src/entity.c}
+\caption{Calcul du point de bouche d'un prédateur.}
+\label{lst:mouth}
+\end{listing}
+
+Ce point est ensuite comparé à la position centrale de chaque
+proie compatible. La proie est mangée si la distance enveloppée
+est inférieure à \code{g\_eat\_radius + prey\_hit}, où
+\code{prey\_hit} dépend de la taille du sprite de la proie. La
+formule pour \code{prey\_hit} accorde un rayon de hit
+proportionnel à la plus petite dimension du sprite, mais avec un
+plancher de 8~pixels pour ne pas pénaliser les sprites
+microscopiques.
+
+\begin{listing}[h!]
+\inputminted[firstline=196, lastline=237]{c}{../src/world.c}
+\caption{Détection des repas (extrait de \file{src/world.c}).}
+\label{lst:eating}
+\end{listing}
+
+\subsection{Cycle de vie : despawn et respawn}
+
+\func{world\_despawn} fait passer une entité de \code{ALIVE} à
+\code{DYING}, décrémente le compteur d'espèce, arme le timer de
+flash de mort, et programme la prochaine fenêtre de respawn.
+
+\begin{listing}[h!]
+\inputminted[firstline=116, lastline=138]{c}{../src/world.c}
+\caption{Despawn d'une entité (extrait de \file{src/world.c}).}
+\label{lst:despawn}
+\end{listing}
+
+Symétriquement, \func{world\_handle\_respawns} parcourt les
+espèces dont la population est inférieure à \code{flock\_size},
+attend la fenêtre \code{respawn\_ready}, puis recycle une entité
+\code{INACTIVE} en lui assignant une nouvelle position et une
+nouvelle vitesse aléatoires.
+
+\begin{listing}[h!]
+\inputminted[firstline=252, lastline=296]{c}{../src/world.c}
+\caption{Logique de respawn (extrait de \file{src/world.c}).}
+\label{lst:respawn}
+\end{listing}
+
+\subsection{Famine}
+
+La famine est délibérément simple~: un prédateur qui n'a pas
+mangé depuis \code{g\_starvation\_seconds} secondes est despawnée.
+Pour les espèces non-prédatrices, le champ \code{last\_eaten} est
+initialisé à l'instant courant et n'est jamais mis à jour~; à
+moins que \code{g\_starvation\_seconds} ne soit anormalement
+court, ces espèces ne meurent donc pas de faim. Cela laisse
+intacte la mécanique de respawn pour les proies, qui meurent
+exclusivement par prédation.
+
+\begin{listing}[h!]
+\inputminted[firstline=239, lastline=250]{c}{../src/world.c}
+\caption{Vérification de la famine.}
+\label{lst:lifespan}
+\end{listing}
+
+\section{Système de configuration TOML}
+
+\subsection{Structure du fichier}
+
+Le fichier \file{aquarium.conf} comporte une section
+\code{[global]} pour les constantes du moteur, et autant de
+blocs \code{[[species]]} qu'il y a d'espèces. La syntaxe TOML est
+strictement définie par la spécification 1.0.0~\cite{tomlspec}.
+
+\begin{listing}[h!]
+\begin{minted}[fontsize=\footnotesize, frame=lines]{toml}
+[global]
+eat_radius = 10.0
+adrenaline_boost = 2.5
+rotation_smooth = 0.1
+death_flash_duration = 0.22
+starvation_seconds = 120.0
+start_width = 1280
+start_height = 720
+start_fullscreen = false
+tick_ms = 16
+assets_dir = "assets/"
+
+[[species]]
+id = "goldfish"
+name = "Goldfish"
+sprite = "assets/goldfish.png"
+sprite_width = 46
+sprite_height = 23
+mouth_forward_ratio = 0.40
+max_speed = 85.0
+min_speed = 30.0
+max_force = 42.0
+separation_radius = 24.0
+alignment_radius = 120.0
+cohesion_radius = 100.0
+separation_weight = 1.6
+alignment_weight = 1.35
+cohesion_weight = 1.45
+fear_radius = 190.0
+fear_weight = 2.5
+hunt_radius = 0.0
+hunt_weight = 0.0
+avoid_same_radius = 0.0
+avoid_same_weight = 0.0
+prey = []
+lifespan = 120.0
+flock_size = 45
+max_population = 60
+respawn_delay = 1.5
+is_apex = false
+\end{minted}
+\caption{Extrait de \file{aquarium.conf} : section globale et bloc \code{goldfish}.}
+\label{lst:conf-extract}
+\end{listing}
+
+\subsection{Parseur \code{tomlc99}}
+
+La bibliothèque \code{tomlc99}~\cite{tomlc99} expose une API en
+deux étapes~: \func{toml\_parse\_file} retourne un
+\code{toml\_table\_t *} si le fichier est syntaxiquement valide,
+puis des accesseurs typés (\func{toml\_int\_in},
+\func{toml\_double\_in}, \func{toml\_bool\_in},
+\func{toml\_string\_in}) lisent les valeurs par clé. Pour les
+tableaux de tables, \func{toml\_array\_in} récupère le tableau,
+puis \func{toml\_table\_at} accède aux sections individuelles.
+
+Un point d'attention~: les valeurs \code{string} retournées par
+\code{tomlc99} sont allouées dynamiquement et doivent être
+libérées avec \code{free()} (et non pas \func{toml\_free},
+qui sert à libérer la table racine). Cette subtilité a été
+identifiée à la première compilation et corrigée.
+
+\subsection{Résolution des références \code{prey}}
+
+Le champ \code{prey} de chaque espèce est un tableau d'identifiants.
+Comme les indices de la table \code{species} ne sont connus
+qu'après lecture de toutes les espèces, la résolution se fait en
+\textbf{deux passes}~:
+
+\begin{enumerate}
+  \item \textbf{Passe~1.} Lecture des champs scalaires de chaque
+    \code{[[species]]}~: identifiant, nom, sprite, dimensions,
+    paramètres comportementaux. Le \code{prey\_mask} est laissé à
+    zéro.
+  \item \textbf{Passe~2.} Pour chaque espèce, parcours du tableau
+    \code{prey}, recherche linéaire de l'identifiant dans la table
+    déjà construite, et activation du bit correspondant dans
+    \code{prey\_mask}. Une référence inconnue déclenche une erreur
+    de chargement nommant l'espèce coupable et la proie absente.
+\end{enumerate}
+
+Cette double passe est exécutée pendant que la \code{toml\_table\_t}
+racine est encore vivante en mémoire, ce qui permet de simplement
+re-parcourir l'arbre TOML sans avoir à mémoriser les chaînes brutes
+entre les deux passes.
+
+\subsection{Chemins de recherche et fallback}
+
+\func{conf\_load} essaie successivement plusieurs chemins, dans
+l'ordre suivant~:
+
+\begin{enumerate}
+  \item \code{override\_path} explicite passé en argument
+    (réservé à un futur \code{--config}).
+  \item \file{./aquarium.conf} (répertoire courant).
+  \item \file{\$XDG\_CONFIG\_HOME/gtkaqua/aquarium.conf}, ou à
+    défaut \file{\textasciitilde/.config/gtkaqua/aquarium.conf}.
+  \item \file{/etc/gtkaqua/aquarium.conf} (configuration système).
+\end{enumerate}
+
+Le premier chemin existant et lisible (\func{stat} qui renvoie
+un fichier régulier) est utilisé. Si aucun n'est trouvé, un
+message d'erreur précis liste les chemins essayés.
+
+\subsection{Variables globales et runtime}
+
+Les paramètres globaux issus de la configuration sont publiés
+sous forme de variables \code{extern} déclarées dans
+\file{include/config.h} et définies dans \file{src/conf.c}~:
+
+\begin{minted}{c}
+extern double g_eat_radius;
+extern double g_adrenaline_boost;
+extern double g_rotation_smooth;
+extern double g_death_flash_duration;
+extern double g_starvation_seconds;
+extern int    g_start_width;
+extern int    g_start_height;
+extern int    g_start_fullscreen;
+extern int    g_tick_ms;
+extern const char *g_assets_dir;
+\end{minted}
+
+Ce choix simplifie la consommation~: \file{src/world.c} et
+\file{src/entity.c} référencent ces variables sans avoir besoin
+de connaître la \struct{AquariumConfig}. Le couplage est
+unidirectionnel~: \code{conf} écrit, tout le reste lit.
+
+\subsection{Rechargement à chaud}
+
+Le bouton \emph{Reload config} de la barre latérale appelle un
+gestionnaire qui~:
+
+\begin{enumerate}
+  \item Construit un \struct{AquariumConfig} temporaire et appelle
+    \func{conf\_load} dessus.
+  \item Si l'opération échoue, affiche une boîte de dialogue
+    d'erreur GTK avec le message d'erreur retourné par
+    \func{conf\_error}, et abandonne sans toucher à l'état
+    courant.
+  \item Si l'opération réussit, copie le tableau d'espèces dans le
+    registre runtime via \func{species\_init}, puis vide le monde
+    (\func{world\_clear}), reconstruit dynamiquement l'interface
+    des espèces (cases à cocher du \emph{pool}, combobox
+    \emph{Add precise}), et appelle \func{world\_populate} pour
+    repeupler avec la nouvelle configuration.
+\end{enumerate}
+
+Cette opération préserve la fenêtre, la pause, et tous les
+contrôles non liés aux espèces.
+
+\section{Rendu GTK4}
+
+\subsection{Hiérarchie des widgets}
+
+L'application repose sur une hiérarchie GTK simple~:
+
+\begin{itemize}
+  \item \code{GtkApplicationWindow}.
+  \item \code{GtkBox} horizontal racine.
+  \item À gauche, un \code{GtkScrolledWindow} contenant la barre
+    latérale (\code{GtkBox} vertical) avec les contrôles.
+  \item À droite, un \code{GtkOverlay} qui empile la vidéo de
+    fond (\code{GtkPicture} avec \code{GtkMediaFile}) et un
+    \code{GtkFixed} servant de toile pour les sprites.
+\end{itemize}
+
+\code{GtkFixed} est un conteneur qui place ses enfants en
+coordonnées absolues. À chaque tick, \func{entity\_apply\_visuals}
+appelle \func{gtk\_fixed\_move} pour mettre à jour la position
+de chaque sprite.
+
+\subsection{Rotation par CSS}
+
+La rotation des sprites est confiée à GTK via une transformation
+CSS appliquée à chaque widget. Chaque entité possède un nom de
+classe CSS unique (\code{entity-N}) et un \code{GtkCssProvider}
+dédié. À chaque tick, le CSS est régénéré~:
+
+\begin{minted}{c}
+snprintf(css, sizeof(css),
+         ".%s { transform: rotate(%.1fdeg); opacity: 1.0; }",
+         e->css_class, e->angle);
+gtk_css_provider_load_from_string(e->css_provider, css);
+\end{minted}
+
+L'angle est lissé entre l'angle courant et la cible
+(\code{heading\_deg\_from\_vel}) selon le facteur
+\code{g\_rotation\_smooth}~:
+
+\begin{minted}{c}
+double diff = target_deg - e->angle;
+while (diff > 180.0)  diff -= 360.0;
+while (diff < -180.0) diff += 360.0;
+e->angle += diff * g_rotation_smooth;
+\end{minted}
+
+Cela évite les changements brusques de direction visuelle.
+
+\subsection{Effet de mort}
+
+L'état \code{DYING} active un effet visuel pulsé combinant
+rotation, mise à l'échelle et variation d'opacité~:
+
+\begin{minted}{c}
+double pulse   = fmod(e->death_timer * 24.0, 2.0) < 1.0 ? 1.0 : 0.0;
+double scale   = 1.15 + (0.35 * pulse);
+double opacity = 0.35 + (0.55 * pulse);
+snprintf(css, sizeof(css),
+         ".%s { transform: rotate(%.1fdeg) scale(%.2f); "
+         "opacity: %.2f; }",
+         e->css_class, e->angle, scale, opacity);
+e->death_timer -= w->dt;
+if (e->death_timer <= 0.0) {
+    e->state = ENTITY_INACTIVE;
+    gtk_widget_set_visible(e->widget, FALSE);
+}
+\end{minted}
+
+Le calcul \code{fmod(e->death\_timer * 24.0, 2.0) < 1.0} produit
+un battement à 12~Hz qui alterne entre deux états visuels,
+donnant un effet de \emph{flash} caractéristique pendant
+\code{g\_death\_flash\_duration} secondes.
+
+\section{Récapitulatif modulaire}
+
+Au final, le projet livre une base de code de l'ordre de 1500
+lignes de C (hors \emph{vendor}), répartie selon le
+tableau~\ref{tab:loc}.
+
+\begin{table}[h!]
+\centering
+\footnotesize
+\begin{tabular}{@{}lr@{}}
+\toprule
+\textbf{Fichier} & \textbf{Lignes (approx.)} \\
+\midrule
+\file{src/main.c}     & 560 \\
+\file{src/world.c}    & 335 \\
+\file{src/entity.c}   & 380 \\
+\file{src/species.c}  &  35 \\
+\file{src/conf.c}     & 305 \\
+\file{include/*.h}    & 200 \\
+\file{aquarium.conf}  & 240 \\
+\midrule
+\textbf{Total projet} & $\approx$ 2050 \\
+\bottomrule
+\end{tabular}
+\caption{Volume de code par module.}
+\label{tab:loc}
+\end{table}
+
+Cette répartition reflète la philosophie du projet~: un coût
+fixe modeste pour chaque module sauf \file{main.c} (qui porte
+toute l'interface utilisateur GTK) et \file{entity.c} (qui porte
+les algorithmes physiques et de pilotage).

@@ -1,0 +1,53 @@
+% Architecture des modules : graphe de dépendance d'inclusion.
+\begin{tikzpicture}[
+  node distance = 1.4cm and 1.6cm,
+  module/.style = {
+    draw, rounded corners, thick,
+    minimum width = 2.2cm, minimum height = 0.9cm,
+    align = center, font = \small\ttfamily,
+    fill = blue!8
+  },
+  vendor/.style = {
+    draw, rounded corners, thick, dashed,
+    minimum width = 2.2cm, minimum height = 0.9cm,
+    align = center, font = \small\ttfamily,
+    fill = orange!10
+  },
+  arr/.style = {-Stealth, thick, gray!70}
+]
+
+% Niveau 1 : main
+\node[module] (main) {main};
+
+% Niveau 2 : world, conf
+\node[module, below left = of main]  (world) {world};
+\node[module, below right = of main] (conf)  {conf};
+
+% Niveau 3 : entity, species
+\node[module, below = of world] (entity)  {entity};
+\node[module, below = of conf]  (species) {species};
+
+% Niveau 4 : vec2, tomlc99
+\node[module, below = of entity] (vec2) {vec2};
+\node[vendor, below = of species] (toml) {tomlc99\\(vendor)};
+
+% Inclusions
+\draw[arr] (main)    -- (world);
+\draw[arr] (main)    -- (conf);
+\draw[arr] (world)   -- (entity);
+\draw[arr] (world)   -- (species);
+\draw[arr] (entity)  -- (species);
+\draw[arr] (entity)  -- (vec2);
+\draw[arr] (world)   -- (vec2);
+\draw[arr] (conf)    -- (species);
+\draw[arr] (conf)    -- (toml);
+
+% Légende
+\node[draw=none, font=\footnotesize, below = 1cm of vec2,
+      anchor=north west, xshift=-0.5cm] (legend) {
+  \begin{tabular}{l}
+    \tikz \draw[-Stealth, thick, gray!70] (0,0) -- (0.5,0); \ \emph{inclusion}\\[2pt]
+  \end{tabular}
+};
+
+\end{tikzpicture}

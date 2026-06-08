@@ -1,0 +1,64 @@
+% Diagramme de séquence d'un tick.
+\begin{tikzpicture}[
+  every node/.style = {font=\small},
+  lifeline/.style   = {dashed, gray!60},
+  actor/.style      = {draw, fill=blue!10, rounded corners,
+                       minimum width=2.2cm, minimum height=0.7cm,
+                       align=center, font=\small\ttfamily},
+  msg/.style        = {-Stealth, thick},
+  ret/.style        = {-Stealth, thick, dashed},
+  activation/.style = {draw, fill=blue!20, minimum width=0.25cm}
+]
+
+% Acteurs (en haut)
+\node[actor] (main)    at (0,0)  {main loop};
+\node[actor] (world)   at (4,0)  {World};
+\node[actor] (entity)  at (8,0)  {Entity[i]};
+\node[actor] (species) at (12,0) {Species};
+
+% Lignes de vie
+\foreach \n in {main, world, entity, species} {
+  \draw[lifeline] (\n.south) -- ++(0,-13);
+}
+
+% Messages (de haut en bas)
+\draw[msg] ($(main.south)+(0,-0.5)$) -- node[above, font=\footnotesize]{tick\_cb}
+           ($(world.south)+(0,-0.5)$);
+
+\draw[msg] ($(world.south)+(0,-1.0)$) -- node[above, font=\footnotesize]{world\_tick}
+           ($(world.south)+(2.5,-1.0)$) -- ++(0,-0.4) -| ($(world.south)+(0,-1.5)$);
+
+% Boucle entity_tick
+\draw[msg] ($(world.south)+(0,-2.2)$) -- node[above, font=\footnotesize]{entity\_tick}
+           ($(entity.south)+(0,-2.2)$);
+\draw[ret] ($(entity.south)+(0,-2.5)$) -- ($(world.south)+(0,-2.5)$);
+\node[font=\footnotesize, gray] at (8, -3.0) {(boucle sur N entités)};
+
+% Eating
+\draw[msg] ($(world.south)+(0,-3.7)$) -- node[above, font=\footnotesize]{world\_handle\_eating}
+           ($(world.south)+(2.0,-3.7)$) -- ++(0,-0.4) -| ($(world.south)+(0,-4.2)$);
+
+% Lifespan
+\draw[msg] ($(world.south)+(0,-4.7)$) -- node[above, font=\footnotesize]{world\_handle\_lifespans}
+           ($(world.south)+(2.5,-4.7)$) -- ++(0,-0.4) -| ($(world.south)+(0,-5.2)$);
+
+% Visuals
+\draw[msg] ($(world.south)+(0,-6.0)$) -- node[above, font=\footnotesize]{entity\_apply\_visuals}
+           ($(entity.south)+(0,-6.0)$);
+\draw[ret] ($(entity.south)+(0,-6.3)$) -- ($(world.south)+(0,-6.3)$);
+\node[font=\footnotesize, gray] at (8, -6.8) {(boucle sur N entités)};
+
+% Respawn
+\draw[msg] ($(world.south)+(0,-7.6)$) -- node[above, font=\footnotesize]{world\_handle\_respawns}
+           ($(world.south)+(2.5,-7.6)$) -- ++(0,-0.4) -| ($(world.south)+(0,-8.1)$);
+
+% Lookup species
+\draw[msg] ($(world.south)+(0,-8.8)$) -- node[above, font=\footnotesize]{species\_get(s)}
+           ($(species.south)+(0,-8.8)$);
+\draw[ret] ($(species.south)+(0,-9.1)$) -- ($(world.south)+(0,-9.1)$);
+
+% Retour final
+\draw[ret] ($(world.south)+(0,-10.0)$) -- node[above, font=\footnotesize]{G\_SOURCE\_CONTINUE}
+           ($(main.south)+(0,-10.0)$);
+
+\end{tikzpicture}

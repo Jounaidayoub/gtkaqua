@@ -1,0 +1,49 @@
+% Diagramme des trois forces de Reynolds (separation, alignment, cohesion)
+% appliquées à un poisson central.
+\begin{tikzpicture}[
+  >=Stealth,
+  fish/.style    = {circle, draw, fill=blue!15, minimum size=0.55cm, inner sep=0pt},
+  selfish/.style = {circle, draw, fill=blue!40, minimum size=0.7cm, inner sep=0pt, very thick},
+  sep/.style     = {-Stealth, very thick, red!80!black},
+  ali/.style     = {-Stealth, very thick, green!50!black},
+  coh/.style     = {-Stealth, very thick, blue!70!black}
+]
+
+% Poisson central (self)
+\node[selfish] (s) at (0,0) {};
+
+% Voisins
+\node[fish] (n1) at (-1.4, 0.3) {};
+\node[fish] (n2) at (-0.4, 1.3) {};
+\node[fish] (n3) at ( 1.0, 1.0) {};
+\node[fish] (n4) at ( 1.5,-0.4) {};
+\node[fish] (n5) at ( 0.4,-1.3) {};
+\node[fish] (n6) at (-1.0,-1.1) {};
+
+% Vitesses des voisins (pour l'alignement)
+\foreach \n in {n1, n2, n3, n4, n5, n6} {
+  \draw[->, gray!50, thin] (\n.center) -- ++(0.6, 0.2);
+}
+
+% Vecteur de séparation (s'éloigner des voisins proches)
+\draw[sep] (s.center) -- ++(-1.2, -0.6) node[below left, font=\small, red!80!black] {séparation};
+
+% Vecteur d'alignement (suivre la moyenne des vitesses)
+\draw[ali] (s.center) -- ++(1.4, 0.6) node[above right, font=\small, green!50!black] {alignement};
+
+% Vecteur de cohésion (vers le centre du groupe)
+\draw[coh] (s.center) -- ++(0.3, 1.3) node[above, font=\small, blue!70!black] {cohésion};
+
+% Cercle de voisinage
+\draw[dashed, gray!50] (s) circle (2.0);
+\node[font=\footnotesize, gray] at (1.6, -1.7) {rayon de voisinage};
+
+% Légende des formules en bas
+\node[draw, font=\footnotesize, align=left,
+      below = 0.6cm of s, anchor=north] (legend) {
+  $\vec{F}_{\text{sep}} \propto -\sum_i \dfrac{\vec{r}_i}{\|\vec{r}_i\|^2}$ \quad
+  $\vec{F}_{\text{ali}} \propto \overline{\vec{v}}_{\text{voisins}}$ \quad
+  $\vec{F}_{\text{coh}} \propto \overline{\vec{p}}_{\text{voisins}} - \vec{p}_{\text{self}}$
+};
+
+\end{tikzpicture}

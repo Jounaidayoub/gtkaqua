@@ -37,11 +37,12 @@ void world_init(World *w, GtkWidget *container, double width, double height) {
     w->width = width;
     w->height = height;
     w->container = container;
-    w->dt = DT;
+    w->dt = ((double) g_tick_ms) / 1000.0;
     w->elapsed = 0.0;
     w->next_id = 1;
 
-    for (int s = 0; s < SPECIES_COUNT; s++) {
+    int sc = species_count();
+    for (int s = 0; s < sc; s++) {
         w->alive_counts[s] = 0;
         w->respawn_ready[s] = 0.0;
     }
@@ -57,23 +58,24 @@ void world_clear(World *w) {
         g_clear_object(&e->css_provider);
     }
     w->entity_count = 0;
-    for (int s = 0; s < SPECIES_COUNT; s++) {
+    int sc = species_count();
+    for (int s = 0; s < sc; s++) {
         w->alive_counts[s] = 0;
         w->respawn_ready[s] = 0.0;
     }
 }
 
-int world_spawn(World *w, SpeciesKind kind, Vec2 pos, Vec2 vel) {
+int world_spawn(World *w, int species_index, Vec2 pos, Vec2 vel) {
     if (w->entity_count >= MAX_ENTITIES) {
         return -1;
     }
 
-    const SpeciesConfig *cfg = species_get(kind);
+    const SpeciesConfig *cfg = species_get(species_index);
     if (cfg == 0) {
         return -1;
     }
 
-    if (cfg->max_population > 0 && w->alive_counts[kind] >= cfg->max_population) {
+    if (cfg->max_population > 0 && w->alive_counts[species_index] >= cfg->max_population) {
         return -1;
     }
 
@@ -81,7 +83,7 @@ int world_spawn(World *w, SpeciesKind kind, Vec2 pos, Vec2 vel) {
     Entity *e = &w->entities[index];
 
     e->id = w->next_id++;
-    e->species = kind;
+    e->species = species_index;
     e->pos = pos;
     e->vel = vel;
     e->acc = (Vec2) {0.0, 0.0};
@@ -109,7 +111,7 @@ int world_spawn(World *w, SpeciesKind kind, Vec2 pos, Vec2 vel) {
         GTK_STYLE_PROVIDER_PRIORITY_USER
     );
 
-    w->alive_counts[kind]++;
+    w->alive_counts[species_index]++;
     return index;
 }
 
@@ -124,7 +126,7 @@ void world_despawn(World *w, int index) {
         if (w->alive_counts[e->species] > 0) {
             w->alive_counts[e->species]--;
         }
-        e->death_timer = DEATH_FLASH_DURATION;
+        e->death_timer = g_death_flash_duration;
     }
 
     const SpeciesConfig *cfg = species_get(e->species);
@@ -134,23 +136,24 @@ void world_despawn(World *w, int index) {
             w->respawn_ready[e->species] = e->respawn_at;
         }
     }
-
 }
 
 void world_populate(World *w) {
-    gboolean enabled[SPECIES_COUNT];
-    for (int s = 0; s < SPECIES_COUNT; s++) {
+    int sc = species_count();
+    gboolean enabled[MAX_SPECIES];
+    for (int s = 0; s < sc; s++) {
         enabled[s] = TRUE;
     }
     world_populate_enabled(w, enabled);
 }
 
-void world_populate_enabled(World *w, const gboolean enabled[SPECIES_COUNT]) {
-    for (int s = 0; s < SPECIES_COUNT; s++) {
+void world_populate_enabled(World *w, const gboolean *enabled) {
+    int sc = species_count();
+    for (int s = 0; s < sc; s++) {
         if (enabled != 0 && !enabled[s]) {
             continue;
         }
-        const SpeciesConfig *cfg = species_get((SpeciesKind) s);
+        const SpeciesConfig *cfg = species_get(s);
         if (cfg == 0) {
             continue;
         }
@@ -174,19 +177,19 @@ void world_populate_enabled(World *w, const gboolean enabled[SPECIES_COUNT]) {
             };
             p = vec2_wrap(p, w->width, w->height);
             Vec2 v = random_velocity_for(cfg);
-            world_spawn(w, cfg->kind, p, v);
+            world_spawn(w, s, p, v);
         }
     }
 }
 
-void world_remove_species(World *w, SpeciesKind kind, int count) {
+void world_remove_species(World *w, int species_index, int count) {
     if (count <= 0) {
         return;
     }
 
     for (int i = w->entity_count - 1; i >= 0 && count > 0; i--) {
         Entity *e = &w->entities[i];
-        if (e->state == ENTITY_ALIVE && e->species == kind) {
+        if (e->state == ENTITY_ALIVE && e->species == species_index) {
             world_despawn(w, i);
             count--;
         }
@@ -224,11 +227,10 @@ static void world_handle_eating(World *w) {
             if (prey_hit < 8.0) {
                 prey_hit = 8.0;
             }
-            double eat_dist = EAT_RADIUS + prey_hit;
+            double eat_dist = g_eat_radius + prey_hit;
 
             double d2 = vec2_dist_sq_wrap(pred_mouth, prey->pos, w->width, w->height);
             if (d2 < eat_dist * eat_dist) {
-                /* predator just ate: update last_eaten */
                 pred->last_eaten = w->elapsed;
                 world_despawn(w, j);
             }
@@ -242,16 +244,16 @@ static void world_handle_lifespans(World *w) {
         if (e->state != ENTITY_ALIVE) {
             continue;
         }
-        /* Starvation: die only if not eaten for STARVATION_SECONDS */
-        if (w->elapsed - e->last_eaten >= STARVATION_SECONDS) {
+        if (w->elapsed - e->last_eaten >= g_starvation_seconds) {
             world_despawn(w, i);
         }
     }
 }
 
 static void world_handle_respawns(World *w) {
-    for (int s = 0; s < SPECIES_COUNT; s++) {
-        const SpeciesConfig *cfg = species_get((SpeciesKind) s);
+    int sc = species_count();
+    for (int s = 0; s < sc; s++) {
+        const SpeciesConfig *cfg = species_get(s);
         if (cfg == 0) {
             continue;
         }
@@ -266,7 +268,7 @@ static void world_handle_respawns(World *w) {
 
         for (int i = 0; i < w->entity_count; i++) {
             Entity *e = &w->entities[i];
-            if (e->state != ENTITY_INACTIVE || e->species != (SpeciesKind) s) {
+            if (e->state != ENTITY_INACTIVE || e->species != s) {
                 continue;
             }
             e->state = ENTITY_ALIVE;
@@ -283,7 +285,7 @@ static void world_handle_respawns(World *w) {
             e->anim_timer = 0.0;
             if (e->widget != 0) {
                 const SpeciesConfig *respawn_cfg = species_get(e->species);
-                if (respawn_cfg != 0 && respawn_cfg->asset_path != 0) {
+                if (respawn_cfg != 0 && respawn_cfg->asset_path[0] != '\0') {
                     gtk_picture_set_filename(GTK_PICTURE(e->widget), respawn_cfg->asset_path);
                 }
                 gtk_widget_set_visible(e->widget, TRUE);
@@ -322,7 +324,7 @@ void world_set_time_scale(World *w, double scale) {
     if (scale <= 0.0) {
         scale = 0.01;
     }
-    w->dt = DT * scale;
+    w->dt = ((double) g_tick_ms) / 1000.0 * scale;
 }
 
 void world_remove_last(World *w) {

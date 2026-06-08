@@ -1,0 +1,6 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{n}{snprintf}\PYG{p}{(}\PYG{n}{css}\PYG{p}{,}\PYG{+w}{ }\PYG{k}{sizeof}\PYG{p}{(}\PYG{n}{css}\PYG{p}{),}
+\PYG{+w}{         }\PYG{l+s}{\PYGZdq{}.\PYGZpc{}s \PYGZob{} transform: rotate(\PYGZpc{}.1fdeg); opacity: 1.0; \PYGZcb{}\PYGZdq{}}\PYG{p}{,}
+\PYG{+w}{         }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{css\PYGZus{}class}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{angle}\PYG{p}{);}
+\PYG{n}{gtk\PYGZus{}css\PYGZus{}provider\PYGZus{}load\PYGZus{}from\PYGZus{}string}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{css\PYGZus{}provider}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{css}\PYG{p}{);}
+\end{MintedVerbatim}

@@ -9,13 +9,18 @@ BUILD_DIR := build
 OBJ_DIR := $(BUILD_DIR)/obj
 BIN_DIR := $(BUILD_DIR)/bin
 TARGET := $(BIN_DIR)/aquarium
+
+VENDOR_DIR := vendor
+VENDOR_SRC := $(VENDOR_DIR)/tomlc99/toml.c
+VENDOR_OBJ := $(OBJ_DIR)/toml.o
+
 SRC := $(wildcard src/*.c)
-OBJ := $(patsubst src/%.c,$(OBJ_DIR)/%.o,$(SRC))
+OBJ := $(patsubst src/%.c,$(OBJ_DIR)/%.o,$(SRC)) $(VENDOR_OBJ)
 
 FISH_DIR := Fish
 ASSET_DIR := assets
 
-.PHONY: all clean assets bear run
+.PHONY: all clean assets bear run install-conf
 
 all: $(TARGET)
 
@@ -25,7 +30,11 @@ $(TARGET): $(OBJ)
 
 $(OBJ_DIR)/%.o: src/%.c
 	mkdir -p $(OBJ_DIR)
-	$(CC) $(CFLAGS) -Iinclude $(GTK_CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -Iinclude -I$(VENDOR_DIR)/tomlc99 $(GTK_CFLAGS) -c $< -o $@
+
+$(VENDOR_OBJ): $(VENDOR_SRC)
+	mkdir -p $(OBJ_DIR)
+	$(CC) $(CFLAGS) -I$(VENDOR_DIR)/tomlc99 $(GTK_CFLAGS) -c $< -o $@
 
 assets:
 	mkdir -p $(ASSET_DIR)
@@ -43,6 +52,11 @@ bear:
 
 run: $(TARGET)
 	./$(TARGET)
+
+install-conf: aquarium.conf
+	mkdir -p $(HOME)/.config/gtkaqua
+	cp aquarium.conf $(HOME)/.config/gtkaqua/aquarium.conf
+	@echo "Installed aquarium.conf to $(HOME)/.config/gtkaqua/aquarium.conf"
 
 clean:
 	rm -rf $(BUILD_DIR) aquarium

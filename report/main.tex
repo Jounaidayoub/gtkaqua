@@ -1,0 +1,28 @@
+\documentclass[11pt, a4paper]{report}
+
+\input{preamble.tex}
+
+\begin{document}
+
+% --- Frontmatter ---------------------------------------------------------
+\include{chapters/00-frontmatter}
+
+% --- Corps du document ---------------------------------------------------
+\include{chapters/01-introduction}
+\include{chapters/02-etat-de-lart}
+\include{chapters/03-analyse}
+\include{chapters/04-conception}
+\include{chapters/05-implementation}
+\include{chapters/06-tests}
+\include{chapters/07-conclusion}
+
+% --- Bibliographie -------------------------------------------------------
+\bibliographystyle{plain}
+\bibliography{biblio}
+\addcontentsline{toc}{chapter}{Bibliographie}
+
+% --- Annexes -------------------------------------------------------------
+\appendix
+\include{chapters/08-annexes}
+
+\end{document}

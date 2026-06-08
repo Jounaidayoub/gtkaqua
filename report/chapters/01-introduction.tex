@@ -1,0 +1,143 @@
+\chapter{Introduction générale}
+\label{chap:introduction}
+
+\section{Contexte}
+
+Les simulations comportementales sont au cœur de nombreux domaines de
+l'informatique~: jeux vidéo, films d'animation, recherche en biologie
+artificielle, robotique en essaim, et applications grand public comme
+les \emph{screensavers} animés. Elles cherchent à reproduire, par des
+règles locales simples appliquées à un grand nombre d'agents, des
+comportements globaux \emph{émergents} qui paraîtraient, sans cela,
+extrêmement coûteux à scénariser explicitement.
+
+Le cas particulier de la simulation d'un \emph{aquarium} concentre
+plusieurs de ces problématiques~: déplacement fluide d'agents
+hétérogènes, formation et dissolution de bancs, interactions
+prédateur/proie, gestion d'une population qui naît et meurt, et tout
+cela en temps réel avec un budget de calcul modeste. C'est un terrain
+d'expérimentation idéal pour mettre en pratique le modèle
+\emph{boids} de Reynolds~\cite{reynolds1987flocks}, qui reste, près de
+quarante ans après sa publication, la référence pour ce type de
+système.
+
+Sur le plan technique, ce projet a également pour objectif de
+développer une application graphique native sous Linux à l'aide de la
+bibliothèque GTK4~\cite{gtk4docs}. Contrairement à un moteur de jeu
+généraliste qui imposerait son propre cadre, GTK est un \emph{toolkit}
+d'interface graphique de bureau~: l'utiliser pour piloter une
+simulation animée oblige à exploiter astucieusement ses primitives
+(positionnement absolu via \code{GtkFixed}, transformations CSS pour
+la rotation, flux multimédia pour la vidéo de fond) et à respecter
+son modèle d'événements basé sur la boucle principale GLib.
+
+\section{Problématique}
+
+Construire un aquarium virtuel crédible suppose de répondre à
+plusieurs questions techniques imbriquées~:
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Comportement émergent.} Comment obtenir, à partir de
+    règles locales (chaque poisson ne voit que ses voisins immédiats),
+    un comportement global cohérent~: bancs qui se forment, se
+    déplacent ensemble, évitent les obstacles, paniquent à l'approche
+    d'un prédateur~?
+
+  \item \textbf{Stabilité numérique.} Comment intégrer les forces qui
+    s'exercent sur un poisson sans que la simulation diverge ou
+    devienne saccadée~? La réponse passe par une boucle à pas fixe
+    et un contrôle strict des accélérations et des vitesses.
+
+  \item \textbf{Écosystème.} Comment représenter de façon généralisable
+    les relations alimentaires entre espèces~? Comment les espèces
+    naissent, meurent et se renouvellent~?
+
+  \item \textbf{Adaptabilité.} Et surtout~: comment permettre à un
+    utilisateur non programmeur de modifier l'écosystème sans
+    recompiler le programme~? L'expérience montre qu'un système qui
+    n'expose pas ses paramètres devient rapidement figé, donc
+    inutilisable pour l'expérimentation.
+\end{enumerate}
+
+C'est sur ce dernier point que ce projet se distingue d'une
+implémentation académique classique du modèle de Reynolds~: l'enjeu
+n'est pas seulement de simuler, mais de fournir un système
+\emph{ouvert} où la liste des espèces, leurs paramètres
+comportementaux et les chaînes alimentaires sont décrits dans un
+fichier texte modifiable à chaud.
+
+\section{Objectifs}
+
+Les objectifs assignés au projet sont les suivants~:
+
+\begin{itemize}[leftmargin=*]
+  \item Implémenter en C un moteur de simulation à pas fixe pour un
+    écosystème de poissons, intégrant les trois forces de Reynolds
+    (séparation, alignement, cohésion), une force de fuite face aux
+    prédateurs, une force de chasse vers les proies, et une force
+    d'évitement entre individus de la même espèce.
+
+  \item Construire l'interface utilisateur avec GTK4~: fenêtre
+    plein écran possible, vidéo de fond en boucle, contrôles latéraux
+    (vitesse globale, pause, ajout et retrait précis de poissons,
+    sélection des espèces du \emph{pool}, rechargement de la
+    configuration).
+
+  \item Concevoir un \textbf{système de configuration externe} en
+    TOML~\cite{tomlspec} qui décrit l'intégralité du paramétrage~:
+    toutes les espèces, toutes leurs propriétés, et les constantes
+    globales du moteur. Cette configuration doit~:
+    \begin{itemize}
+      \item permettre l'ajout/suppression d'une espèce sans toucher
+        au code C~;
+      \item résoudre dynamiquement les références entre espèces
+        (\code{prey} = liste d'identifiants)~;
+      \item proposer des chemins de recherche standards et un
+        mécanisme de \emph{fallback}~;
+      \item être rechargeable à chaud depuis l'interface.
+    \end{itemize}
+
+  \item Garantir la \emph{robustesse} de l'application face à une
+    configuration invalide~: erreurs de syntaxe TOML, identifiants
+    manquants, références \code{prey} inconnues, valeurs hors plage.
+    Le programme doit échouer proprement avec un message lisible
+    plutôt que de produire un comportement indéfini.
+\end{itemize}
+
+\section{Plan du mémoire}
+
+Ce rapport est organisé en sept chapitres~:
+
+\begin{itemize}[leftmargin=*]
+  \item Le \textbf{chapitre~\ref{chap:etat-de-lart}} présente l'état
+    de l'art utile à la compréhension du projet~: le modèle de
+    Reynolds, l'évolution vers des comportements de pilotage plus
+    riches, les choix d'intégration numérique et un panorama
+    comparatif des formats de configuration usuels.
+
+  \item Le \textbf{chapitre~\ref{chap:analyse}} formalise les
+    spécifications fonctionnelles et non fonctionnelles du système
+    et présente les principaux cas d'utilisation.
+
+  \item Le \textbf{chapitre~\ref{chap:conception}} décrit
+    l'architecture modulaire retenue, le modèle de données, la
+    séquence d'un \emph{tick} de simulation, le cycle de vie d'une
+    entité et le graphe prédateur/proie.
+
+  \item Le \textbf{chapitre~\ref{chap:implementation}} détaille
+    l'implémentation~: environnement et chaîne de compilation,
+    pipeline d'assets, algorithmes clés (forces de Reynolds, chasse,
+    fuite, alimentation par la bouche, gestion des respawns), et
+    enfin le système de configuration TOML.
+
+  \item Le \textbf{chapitre~\ref{chap:tests}} présente les scénarios
+    de test menés et leurs résultats.
+
+  \item Le \textbf{chapitre~\ref{chap:conclusion}} dresse le bilan
+    du projet et propose des pistes d'amélioration.
+
+  \item Une bibliographie et plusieurs annexes (fichier de
+    configuration complet, instructions de \emph{build},
+    arborescence du projet, tableau récapitulatif des espèces)
+    closent le document.
+\end{itemize}

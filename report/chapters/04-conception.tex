@@ -1,0 +1,295 @@
+\chapter{Conception}
+\label{chap:conception}
+
+\section{Architecture globale}
+
+L'application est découpée en six modules C, plus une bibliothèque
+\emph{vendor} pour le parsing TOML. Chaque module possède un fichier
+d'en-tête (dans \file{include/}) qui expose son API publique, et un
+fichier source (dans \file{src/}) qui contient l'implémentation.
+La figure~\ref{fig:architecture} présente le graphe des inclusions.
+
+\begin{figure}[h!]
+\centering
+\input{figures/architecture.tex}
+\caption{Architecture modulaire et dépendances d'inclusion.}
+\label{fig:architecture}
+\end{figure}
+
+Rôle de chaque module~:
+
+\begin{description}[leftmargin=3em, style=nextline]
+  \item[\code{main}.] Point d'entrée de l'application. Crée la
+    fenêtre GTK, met en place les contrôles latéraux, charge la
+    configuration via \code{conf}, initialise le \code{World} et
+    enregistre le \emph{tick} via \func{g\_timeout\_add}.
+
+  \item[\code{world}.] Possède le pool d'entités, gère leur
+    spawn/despawn, orchestre la séquence de mise à jour
+    (déplacement, alimentation, vieillissement, respawn), et
+    expose la fonction \func{world\_tick} appelée à chaque
+    image.
+
+  \item[\code{entity}.] Représente une entité individuelle.
+    Implémente les forces de pilotage (boids, fuite, chasse,
+    évitement intra-espèce), l'intégration physique
+    semi-implicite, le lissage de l'angle de cap, et la mise à
+    jour visuelle (positionnement et CSS).
+
+  \item[\code{species}.] Registre dynamique des
+    \struct{SpeciesConfig}. Stocke en mémoire le tableau des
+    espèces issu de la configuration et fournit les fonctions
+    de recherche par index ou par identifiant.
+
+  \item[\code{conf}.] Lit \file{aquarium.conf} via le parseur
+    TOML, valide le contenu, résout les listes \code{prey} en
+    bitmask, et publie les paramètres globaux dans des variables
+    \code{extern}.
+
+  \item[\code{vec2}.] Bibliothèque \emph{header-only} de
+    vecteurs 2D~: addition, soustraction, multiplication par
+    scalaire, normalisation, limitation, \emph{wrapping} torique
+    pour le monde, et calcul de delta minimal en distance
+    enveloppée.
+
+  \item[\code{tomlc99} (vendor).] Parseur TOML en C99 distribué
+    en deux fichiers (\file{toml.h}, \file{toml.c}), embarqué
+    dans \file{vendor/tomlc99/}.
+\end{description}
+
+\section{Modèle de données}
+
+Trois structures principales portent l'état du système.
+
+\subsection{\struct{Entity}}
+
+Une \struct{Entity} représente une instance vivante (ou en
+sursis) dans l'aquarium. Elle agrège trois groupes de champs~:
+
+\begin{itemize}
+  \item \textbf{Identité et appartenance}~: \code{id} unique,
+    \code{species} (index dans le registre).
+  \item \textbf{État physique}~: position \code{pos}, vitesse
+    \code{vel}, accélération \code{acc}, angle de cap
+    \code{angle} (lissé), facteur de variation individuel
+    \code{speed\_scale}.
+  \item \textbf{Cycle de vie et rendu}~: \code{state} (\code{ALIVE},
+    \code{DYING}, \code{INACTIVE}), \code{age},
+    \code{last\_eaten}, \code{respawn\_at}, \code{death\_timer},
+    plus le \code{widget} GTK et le \code{css\_provider}
+    associés.
+\end{itemize}
+
+\subsection{\struct{SpeciesConfig}}
+
+Cette structure regroupe l'intégralité des paramètres
+gouvernant le comportement d'une espèce~: identifiant
+\code{id}, nom affiché, chemin du sprite, dimensions du sprite,
+ratio de bouche, vitesses min/max, force max, rayons et poids
+des trois forces de Reynolds, rayon et poids de fuite, rayon
+et poids de chasse, rayon et poids d'évitement intra-espèce,
+masque de proie, durée de vie, taille initiale du banc,
+plafond de population, délai de respawn, et drapeau
+\code{is\_apex}.
+
+L'ensemble des paramètres comportementaux est ainsi capturé
+dans un \emph{seul} type, ce qui simplifie considérablement
+le code consommateur~: \func{entity\_tick} reçoit un pointeur
+\code{const SpeciesConfig *} et lit les paramètres dont il a
+besoin, sans avoir à connaître le système de configuration.
+
+\subsection{\struct{World}}
+
+Le \struct{World} contient le pool d'entités en tableau
+statique \code{Entity entities[MAX\_ENTITIES]}, le compteur
+courant, les dimensions de la zone simulée, le pointeur vers
+le conteneur GTK, le pas de temps courant \code{dt}, le temps
+écoulé \code{elapsed}, le générateur d'identifiants
+\code{next\_id}, ainsi que deux tableaux indexés par espèce~:
+\code{alive\_counts[MAX\_SPECIES]} et
+\code{respawn\_ready[MAX\_SPECIES]}.
+
+\section{Séquence d'un tick}
+
+À chaque pas de simulation, \func{world\_tick} orchestre une
+séquence ordonnée d'étapes. La figure~\ref{fig:tick-sequence}
+représente cet enchaînement.
+
+\begin{figure}[h!]
+\centering
+\resizebox{0.85\textwidth}{!}{\input{figures/tick-sequence.tex}}
+\caption{Séquence d'un tick de simulation.}
+\label{fig:tick-sequence}
+\end{figure}
+
+Chronologiquement~:
+
+\begin{enumerate}
+  \item Avancement du temps~: \code{elapsed += dt}.
+  \item Pour chaque entité \code{ALIVE}, calcul des forces et
+    mise à jour de la position et de la vitesse via
+    \func{entity\_tick}.
+  \item Détection et application des \emph{repas}~:
+    \func{world\_handle\_eating} parcourt tous les couples
+    prédateur/proie compatibles et déclenche un
+    \func{world\_despawn} si la bouche du prédateur entre dans
+    le rayon de hit de la proie.
+  \item Vérification de la famine~: une entité qui n'a pas
+    mangé depuis \code{STARVATION\_SECONDS} secondes est
+    \emph{despawn}ée.
+  \item Pour chaque entité, \func{entity\_apply\_visuals}
+    actualise la position du widget et le CSS de rotation. Si
+    l'entité est en \code{DYING}, le timer décroît jusqu'à
+    \code{INACTIVE}.
+  \item Tentative de respawn pour chaque espèce dont
+    \code{alive\_counts} est inférieur à \code{flock\_size}.
+\end{enumerate}
+
+L'ordre des étapes est important. La détection des repas
+\emph{après} l'intégration physique garantit que la collision
+est calculée sur les positions à jour. La mise à jour visuelle
+\emph{après} la détection des repas permet d'afficher le flash
+de mort dès le tick suivant la consommation. Le respawn en
+dernière étape évite de réactiver une entité qui aurait été
+mangée le même tick.
+
+\section{Cycle de vie d'une entité}
+
+La figure~\ref{fig:lifecycle} formalise les trois états et
+leurs transitions.
+
+\begin{figure}[h!]
+\centering
+\input{figures/lifecycle.tex}
+\caption{Machine à états du cycle de vie d'une entité.}
+\label{fig:lifecycle}
+\end{figure}
+
+\begin{description}[leftmargin=3em, style=nextline]
+  \item[\code{ALIVE} $\to$ \code{ALIVE}.] Cas nominal. L'entité
+    est mise à jour à chaque tick.
+
+  \item[\code{ALIVE} $\to$ \code{DYING}.] Déclenché par
+    \func{world\_despawn}, qui peut être appelé soit par
+    \func{world\_handle\_eating} (mort par prédation) soit par
+    \func{world\_handle\_lifespans} (mort par famine). Le
+    compteur \code{alive\_counts[species]} est décrémenté, et
+    \code{death\_timer} est initialisé à
+    \code{DEATH\_FLASH\_DURATION}.
+
+  \item[\code{DYING} $\to$ \code{INACTIVE}.] À chaque tick en
+    \code{DYING}, \code{death\_timer} décroît de \code{dt}.
+    Lorsqu'il atteint zéro, le widget est masqué et l'état
+    passe à \code{INACTIVE}.
+
+  \item[\code{INACTIVE} $\to$ \code{ALIVE}.] Si la population
+    vivante est inférieure à \code{flock\_size} \emph{et} que
+    \code{elapsed} dépasse \code{respawn\_ready[species]},
+    \func{world\_handle\_respawns} réactive une entité
+    \code{INACTIVE} de cette espèce~: position et vitesse
+    aléatoires, état \code{ALIVE}, widget rendu visible, et
+    \code{respawn\_ready} repoussé de \code{respawn\_delay}.
+\end{description}
+
+Le choix d'un \emph{recyclage} d'entités plutôt qu'une
+allocation/destruction permet de borner statiquement le tableau
+\code{entities} à \code{MAX\_ENTITIES} et d'éviter toute
+fragmentation~: les widgets GTK sont créés une fois pour toutes
+au moment du \emph{spawn}, puis réutilisés.
+
+\section{Graphe prédateur/proie}
+
+La configuration par défaut implémente une chaîne alimentaire à
+trois niveaux représentée dans la figure~\ref{fig:predator-prey}.
+
+\begin{figure}[h!]
+\centering
+\input{figures/predator-prey.tex}
+\caption{Chaîne alimentaire de l'écosystème par défaut.}
+\label{fig:predator-prey}
+\end{figure}
+
+Le requin (\code{shark}) est l'unique prédateur \emph{apex}
+(drapeau \code{is\_apex = true}, aucun \code{fear\_radius}). Il
+chasse cinq espèces. Quatre prédateurs intermédiaires
+(\code{barracuda}, \code{bass}, \code{trout}, \code{tuna})
+chassent les petites proies (\code{goldfish}, \code{clownfish})
+et craignent le requin. Trois espèces de proies pures
+(\code{goldfish}, \code{clownfish}, \code{angelfish}) ne
+chassent personne.
+
+L'angelfish a un statut particulier~: il n'est chassé que par
+le requin, ce qui en fait une proie résiliente, intermédiaire
+entre les petites proies (massivement chassées) et les
+prédateurs.
+
+\section{Forces de pilotage}
+
+La figure~\ref{fig:boids-forces} illustre comment les trois
+forces de Reynolds s'appliquent à un agent. Les forces
+supplémentaires (fuite, chasse, évitement intra-espèce) sont
+construites sur le même schéma vectoriel mais avec des
+voisinages et des cibles différents.
+
+\begin{figure}[h!]
+\centering
+\input{figures/boids-forces.tex}
+\caption{Forces de séparation, alignement et cohésion appliquées à un boid.}
+\label{fig:boids-forces}
+\end{figure}
+
+Toutes les forces partagent le même \emph{pattern} de calcul,
+ce qui se reflète directement dans le code de
+\code{src/entity.c} (chapitre~\ref{chap:implementation})~:
+
+\begin{enumerate}
+  \item Parcourir les voisins compatibles dans un rayon donné.
+  \item Accumuler un vecteur \emph{désiré} selon la règle.
+  \item Calculer un vecteur de \emph{steering} = désiré $-$
+    vitesse courante, borné par \code{max\_force}.
+  \item Pondérer par le poids de la force et accumuler dans
+    l'accélération totale.
+\end{enumerate}
+
+L'accélération totale est ensuite bornée à
+$4 \times \code{max\_force}$ pour absorber les pics, intégrée
+dans la vitesse, qui est elle-même bornée à \code{max\_speed}.
+
+\section{Choix de conception remarquables}
+
+\paragraph{Position centre-based.} La position d'une entité est
+le centre de son sprite, pas son coin haut-gauche. Le coin de
+dessin est dérivé au moment du rendu. Cela simplifie tous les
+calculs de distance et de collision.
+
+\paragraph{Bouche dérivée du cap.} Le point de bouche est
+calculé par
+\code{pos + sprite\_width × mouth\_forward\_ratio × dir}, où
+\code{dir} est le vecteur unitaire de la vitesse. Cela rend
+l'alimentation visuellement crédible (le poisson doit \emph{faire
+face} à sa proie pour la manger), sans coût de calcul
+significatif.
+
+\paragraph{Indices d'espèces dynamiques.} À l'origine, les
+espèces étaient identifiées par une \code{enum SpeciesKind}
+définie au moment de la compilation. Cette approche figeait la
+liste des espèces. Le passage à un index entier dynamique
+(0..\code{species\_count}-1) résolu par
+\func{species\_find\_by\_id} a permis de découpler la liste des
+espèces du code C~: ajouter une espèce ne demande plus de
+toucher à \file{species.h}.
+
+\paragraph{Bitmask 32 bits pour \code{prey\_mask}.} Avec
+\code{MAX\_SPECIES = 32}, un \code{int} suffit pour décrire
+l'ensemble des proies d'un prédateur. Le test
+``cette entité $j$ est-elle une proie de l'entité $i$~?'' se
+réduit alors à
+\code{prey\_mask\_i \& (1 << species\_j)}, donc à une opération
+en temps constant. C'est essentiel car ce test est exécuté à
+chaque couple $(i, j)$ d'entités, soit en $O(N^2)$ par tick.
+
+\paragraph{Vendoring de \code{tomlc99}.} La bibliothèque TOML
+n'est pas une dépendance système~: elle est copiée dans
+\file{vendor/tomlc99/} et compilée avec le projet. Cela
+garantit la reproductibilité du \emph{build} et l'absence de
+téléchargement réseau au moment de la compilation.

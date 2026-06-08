@@ -1,0 +1,254 @@
+\chapter{Tests et résultats}
+\label{chap:tests}
+
+\section{Méthodologie}
+
+Le projet ne dispose pas pour l'instant d'un \emph{framework} de
+tests unitaires automatisés~: la nature visuelle de la
+simulation et le couplage fort avec GTK rendent peu rentable la
+mise en place d'un harnais comme \code{cmocka} ou
+\code{check}. À la place, la validation s'est appuyée sur~:
+
+\begin{itemize}
+  \item \textbf{Tests fonctionnels manuels} reproductibles,
+    listés dans la section suivante. Chaque scénario est défini
+    par~: une condition initiale (état du fichier de
+    configuration), une action utilisateur, un résultat attendu,
+    et un résultat observé.
+  \item \textbf{Tests de chargement de configuration} avec des
+    cas volontairement erronés~: typo dans une clé, identifiant
+    de proie inconnu, fichier introuvable.
+  \item \textbf{Compilation avec drapeaux stricts}~:
+    \code{-Wall -Wextra -Wpedantic} pour détecter les
+    constructions douteuses.
+\end{itemize}
+
+Cette approche reste qualitative~: aucune mesure quantitative de
+performance (FPS moyen, latence d'un tick) n'a été instrumentée,
+ce qui constitue une limite identifiée et reportée dans les
+perspectives (chapitre~\ref{chap:conclusion}).
+
+\section{Scénarios fonctionnels}
+
+\subsection{S1 -- Démarrage avec configuration par défaut}
+
+\begin{description}[leftmargin=3em]
+  \item[Préconditions.] Le binaire \file{build/bin/aquarium} est
+    construit. Le fichier \file{aquarium.conf} contient les
+    huit espèces de la configuration de référence avec leurs
+    valeurs documentées.
+  \item[Action.] Lancer \code{./build/bin/aquarium}.
+  \item[Attendu.] La fenêtre s'ouvre en 1280$\times$720, la
+    barre latérale présente huit cases à cocher (une par
+    espèce), la combobox \emph{Add precise} liste les huit
+    noms, le pool initial spawn environ 95 entités au total
+    (45 goldfish, 18 clownfish, 14 angelfish, 10 par prédateur
+    intermédiaire, 4 tuna, 2 shark).
+  \item[Observé.] Conforme. Les bancs se forment en quelques
+    secondes, les prédateurs commencent à chasser après le
+    premier croisement avec une proie.
+\end{description}
+
+\subsection{S2 -- Modification d'un paramètre simple}
+
+\begin{description}[leftmargin=3em]
+  \item[Préconditions.] Application en cours d'exécution.
+  \item[Action.] Éditer \file{aquarium.conf}, remplacer
+    \code{max\_speed = 85.0} par \code{max\_speed = 200.0} dans
+    le bloc \code{[[species]]} \code{goldfish}, sauvegarder, et
+    cliquer sur \emph{Reload config}.
+  \item[Attendu.] Les goldfish se déplacent visiblement plus
+    vite (vitesse maximale environ 2,4$\times$ supérieure). Les
+    autres espèces conservent leur comportement nominal.
+  \item[Observé.] Conforme. Les goldfish atteignent visuellement
+    une vitesse plus élevée. Le banc paraît plus dispersé car la
+    cohésion à pondération inchangée a moins de prise sur des
+    individus rapides.
+\end{description}
+
+\subsection{S3 -- Suppression d'une espèce}
+
+\begin{description}[leftmargin=3em]
+  \item[Préconditions.] Application en cours d'exécution.
+  \item[Action.] Commenter intégralement le bloc
+    \code{[[species]]} \code{angelfish} dans la
+    configuration en préfixant chaque ligne par \code{\#},
+    puis cliquer sur \emph{Reload config}.
+  \item[Attendu.] L'espèce angelfish disparaît~: aucun spawn,
+    plus de case à cocher, plus d'entrée dans la combobox.
+    Les autres espèces continuent normalement. Aucun crash.
+  \item[Observé.] Conforme. Les références \code{prey}
+    pointaient déjà vers angelfish dans la configuration du
+    requin~: l'absence d'angelfish est correctement gérée
+    car le bit correspondant n'est simplement pas mis dans
+    \code{prey\_mask}.
+  \item[Note.] Si une espèce dont l'identifiant figure encore
+    dans une liste \code{prey} d'un autre prédateur est
+    supprimée, le chargement échoue avec un message clair (cf.\
+    scénario~S5).
+\end{description}
+
+\subsection{S4 -- Ajout d'une nouvelle espèce}
+
+\begin{description}[leftmargin=3em]
+  \item[Préconditions.] Un fichier PNG \file{piranha.png}
+    orienté vers la gauche est placé dans \file{assets/}.
+  \item[Action.] Ajouter à la fin de \file{aquarium.conf} un
+    bloc \code{[[species]]} avec \code{id = "piranha"} et un
+    sous-ensemble cohérent de paramètres (vitesse moyenne,
+    rayon de chasse, \code{prey = ["goldfish"]}). Cliquer sur
+    \emph{Reload config}.
+  \item[Attendu.] Une neuvième case à cocher apparaît, une
+    neuvième entrée dans la combobox, et des piranhas spawnent
+    dans la simulation.
+  \item[Observé.] Conforme. Aucun changement de code C n'a été
+    nécessaire.
+\end{description}
+
+\subsection{S5 -- Configuration invalide : référence inconnue}
+
+\begin{description}[leftmargin=3em]
+  \item[Préconditions.] Application en cours d'exécution.
+  \item[Action.] Modifier \code{prey = ["goldfish"]} en
+    \code{prey = ["sardine"]} dans le bloc \code{trout}, puis
+    cliquer sur \emph{Reload config}.
+  \item[Attendu.] La boîte de dialogue d'erreur s'affiche avec
+    un message du type \og species 'trout': unknown prey
+    'sardine'~\fg. La simulation courante n'est pas affectée
+    (rollback implicite~: l'ancienne configuration reste en
+    place).
+  \item[Observé.] Conforme.
+\end{description}
+
+\subsection{S6 -- Configuration invalide : syntaxe TOML}
+
+\begin{description}[leftmargin=3em]
+  \item[Préconditions.] Application en cours d'exécution.
+  \item[Action.] Introduire volontairement une erreur de
+    syntaxe (par exemple~: oubli des guillemets autour d'une
+    chaîne, ou crochet ouvert non refermé) puis cliquer sur
+    \emph{Reload config}.
+  \item[Attendu.] La boîte d'erreur affiche le chemin du
+    fichier suivi du message d'erreur retourné par
+    \code{tomlc99}, qui inclut typiquement le numéro de
+    ligne.
+  \item[Observé.] Conforme. Le message est précis car
+    \code{tomlc99} fournit lui-même un \code{errbuf} explicite.
+\end{description}
+
+\subsection{S7 -- Absence du fichier}
+
+\begin{description}[leftmargin=3em]
+  \item[Préconditions.] Renommer temporairement
+    \file{aquarium.conf} en \file{aquarium.conf.bak} et
+    s'assurer qu'aucune copie de \emph{fallback} n'existe en
+    \file{\textasciitilde/.config/gtkaqua/} ni en
+    \file{/etc/gtkaqua/}.
+  \item[Action.] Lancer l'application.
+  \item[Attendu.] Échec propre avec le message \og no
+    aquarium.conf found (checked ./aquarium.conf,
+    \textasciitilde/.config/gtkaqua/aquarium.conf,
+    /etc/gtkaqua/aquarium.conf)~\fg. Pas de \emph{segfault}.
+  \item[Observé.] Conforme.
+\end{description}
+
+\subsection{S8 -- Fallback XDG}
+
+\begin{description}[leftmargin=3em]
+  \item[Préconditions.] \file{aquarium.conf} retiré du
+    répertoire courant. Une copie placée dans
+    \file{\textasciitilde/.config/gtkaqua/aquarium.conf} via
+    \code{make install-conf}.
+  \item[Action.] Lancer l'application depuis un répertoire
+    arbitraire qui ne contient pas \file{aquarium.conf}.
+  \item[Attendu.] L'application démarre normalement, en
+    utilisant la copie XDG.
+  \item[Observé.] Conforme.
+\end{description}
+
+\subsection{S9 -- Pause et reprise}
+
+\begin{description}[leftmargin=3em]
+  \item[Préconditions.] Simulation en cours.
+  \item[Action.] Cliquer sur \emph{Pause}, attendre quelques
+    secondes, observer le comportement, puis cliquer sur
+    \emph{Resume}.
+  \item[Attendu.] Pendant la pause, les sprites restent
+    immobiles, les widgets sont à leur dernière position. À la
+    reprise, le mouvement reprend sans saut.
+  \item[Observé.] Conforme. \code{world\_tick} n'est plus
+    appelé pendant la pause, mais le timer GTK continue, donc
+    \code{elapsed} ne progresse pas.
+\end{description}
+
+\subsection{S10 -- Plein écran}
+
+\begin{description}[leftmargin=3em]
+  \item[Préconditions.] Simulation en cours.
+  \item[Action.] Appuyer sur \kw{F11}.
+  \item[Attendu.] La fenêtre passe en plein écran. Les sprites
+    sont libres d'occuper toute la zone, qui est reconfigurée
+    automatiquement (\code{world.width}, \code{world.height}
+    sont mises à jour à partir de
+    \code{gtk\_widget\_get\_width/height} dans le \code{tick\_cb}).
+  \item[Observé.] Conforme. Appuyer sur \kw{Échap} restaure le
+    mode fenêtré.
+\end{description}
+
+\section{Synthèse des résultats}
+
+Le tableau~\ref{tab:test-summary} récapitule les dix scénarios.
+
+\begin{table}[h!]
+\centering
+\footnotesize
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Scénario} & \textbf{Fonctionnalité testée} & \textbf{Résultat} \\
+\midrule
+S1  & Démarrage avec config par défaut       & OK \\
+S2  & Modification d'un paramètre simple     & OK \\
+S3  & Suppression d'une espèce               & OK \\
+S4  & Ajout d'une nouvelle espèce            & OK \\
+S5  & Référence \code{prey} inconnue         & OK \\
+S6  & Erreur de syntaxe TOML                 & OK \\
+S7  & Absence totale du fichier              & OK \\
+S8  & Fallback XDG                           & OK \\
+S9  & Pause/Resume                           & OK \\
+S10 & Plein écran                            & OK \\
+\bottomrule
+\end{tabular}
+\caption{Synthèse des scénarios de test.}
+\label{tab:test-summary}
+\end{table}
+
+\section{Limites identifiées}
+
+\begin{itemize}
+  \item \textbf{Pas de mesure quantitative de performance.} Le
+    coût d'un tick n'est pas instrumenté. Pour une évaluation
+    rigoureuse, il faudrait mesurer la durée moyenne et le 99e
+    centile de \func{world\_tick} en fonction du nombre
+    d'entités, et tracer le résultat.
+
+  \item \textbf{Complexité $O(N^2)$.} Toutes les forces
+    parcourent la liste complète des entités à chaque tick. À
+    population modeste (~100 entités) cela ne pose pas de
+    problème, mais le coût croît rapidement~: 200 entités
+    impliquent quatre fois plus de comparaisons.
+
+  \item \textbf{Pas de tests automatisés.} Les régressions sont
+    actuellement détectées \emph{a posteriori} par observation
+    visuelle. Un harnais de tests sur les fonctions pures
+    (parsing TOML, résolution de \code{prey\_mask},
+    \func{vec2\_*}) serait peu coûteux à mettre en place et
+    procurerait une garantie utile.
+
+  \item \textbf{Couverture du parseur de configuration.} Toutes
+    les clés sont optionnelles côté parseur~: si une clé
+    obligatoire est manquante (par exemple \code{sprite}), le
+    chargement détecte le cas, mais d'autres clés silencieusement
+    par défaut à zéro pourraient produire des comportements
+    dégénérés (vitesse nulle, rayons nuls). Une validation
+    \emph{post-load} renforcée serait souhaitable.
+\end{itemize}

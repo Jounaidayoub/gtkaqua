@@ -1,0 +1,4 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{n+nv}{GTK\PYGZus{}CFLAGS}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{\PYGZdl{}(}shell\PYG{+w}{ }\PYG{k}{\PYGZdl{}(}PKG\PYGZus{}CONFIG\PYG{k}{)}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}cflags\PYG{+w}{ }gtk4\PYG{k}{)}
+\PYG{n+nv}{GTK\PYGZus{}LIBS}\PYG{+w}{   }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{\PYGZdl{}(}shell\PYG{+w}{ }\PYG{k}{\PYGZdl{}(}PKG\PYGZus{}CONFIG\PYG{k}{)}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}libs\PYG{+w}{ }gtk4\PYG{k}{)}
+\end{MintedVerbatim}

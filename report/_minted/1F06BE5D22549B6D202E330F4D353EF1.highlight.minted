@@ -1,0 +1,12 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k}{extern}\PYG{+w}{ }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{g\PYGZus{}eat\PYGZus{}radius}\PYG{p}{;}
+\PYG{k}{extern}\PYG{+w}{ }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{g\PYGZus{}adrenaline\PYGZus{}boost}\PYG{p}{;}
+\PYG{k}{extern}\PYG{+w}{ }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{g\PYGZus{}rotation\PYGZus{}smooth}\PYG{p}{;}
+\PYG{k}{extern}\PYG{+w}{ }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{g\PYGZus{}death\PYGZus{}flash\PYGZus{}duration}\PYG{p}{;}
+\PYG{k}{extern}\PYG{+w}{ }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{g\PYGZus{}starvation\PYGZus{}seconds}\PYG{p}{;}
+\PYG{k}{extern}\PYG{+w}{ }\PYG{k+kt}{int}\PYG{+w}{    }\PYG{n}{g\PYGZus{}start\PYGZus{}width}\PYG{p}{;}
+\PYG{k}{extern}\PYG{+w}{ }\PYG{k+kt}{int}\PYG{+w}{    }\PYG{n}{g\PYGZus{}start\PYGZus{}height}\PYG{p}{;}
+\PYG{k}{extern}\PYG{+w}{ }\PYG{k+kt}{int}\PYG{+w}{    }\PYG{n}{g\PYGZus{}start\PYGZus{}fullscreen}\PYG{p}{;}
+\PYG{k}{extern}\PYG{+w}{ }\PYG{k+kt}{int}\PYG{+w}{    }\PYG{n}{g\PYGZus{}tick\PYGZus{}ms}\PYG{p}{;}
+\PYG{k}{extern}\PYG{+w}{ }\PYG{k}{const}\PYG{+w}{ }\PYG{k+kt}{char}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{g\PYGZus{}assets\PYGZus{}dir}\PYG{p}{;}
+\end{MintedVerbatim}

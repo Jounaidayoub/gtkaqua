@@ -1,0 +1,170 @@
+\chapter{Conclusion et perspectives}
+\label{chap:conclusion}
+
+\section{Bilan}
+
+Le projet a livré un aquarium animé fonctionnel sous Linux et
+GTK4, peuplé par défaut de huit espèces et offrant des
+interactions prédateur/proie crédibles. Les objectifs initiaux
+sont atteints~:
+
+\begin{itemize}
+  \item Le moteur de simulation à pas fixe est stable et
+    déterministe, avec les trois forces de Reynolds
+    correctement implémentées et complétées par des
+    comportements de fuite, de chasse et d'évitement
+    intra-espèce.
+
+  \item Le cycle de vie complet des entités (\code{ALIVE},
+    \code{DYING}, \code{INACTIVE}) est en place, avec un
+    recyclage qui borne statiquement la consommation mémoire.
+
+  \item Le \emph{système de configuration externe} en TOML
+    permet effectivement à un utilisateur non développeur
+    d'ajuster la simulation, d'ajouter ou de retirer des
+    espèces, sans recompilation. Les chemins de
+    \emph{fallback}, le rechargement à chaud et la gestion
+    d'erreurs lisible répondent aux attentes posées au
+    chapitre~\ref{chap:analyse}.
+
+  \item L'interface graphique propose les contrôles essentiels~:
+    pause, vitesse globale, sélection du \emph{pool}, ajout et
+    retrait précis de poissons, plein écran, et rechargement de
+    la configuration.
+\end{itemize}
+
+Le tableau~\ref{tab:bilan} synthétise les exigences
+fonctionnelles et leur statut.
+
+\begin{table}[h!]
+\centering
+\footnotesize
+\begin{tabular}{@{}llc@{}}
+\toprule
+\textbf{Réf.} & \textbf{Exigence} & \textbf{Statut} \\
+\midrule
+EF1  & Simulation de banc multi-espèces       & livré \\
+EF2  & Prédateur/proie avec mouth-based eating & livré \\
+EF3  & Fuite des proies + adrénaline          & livré \\
+EF4  & Cycle de vie 3 états                    & livré \\
+EF5  & Famine                                  & livré \\
+EF6  & Configuration TOML externe              & livré \\
+EF7  & Recherche multi-niveaux                 & livré \\
+EF8  & Ajout/suppression sans recompilation    & livré \\
+EF9  & Validation et messages d'erreur         & livré \\
+EF10 & Rechargement à chaud                    & livré \\
+EF11 & Contrôles utilisateur                   & livré \\
+EF12 & Plein écran                             & livré \\
+\bottomrule
+\end{tabular}
+\caption{Statut des exigences fonctionnelles.}
+\label{tab:bilan}
+\end{table}
+
+\section{Limites techniques}
+
+Le projet, dans son état actuel, présente plusieurs limites
+identifiées~:
+
+\paragraph{Complexité quadratique.} Toutes les détections de
+voisinage parcourent l'ensemble des entités, ce qui rend le coût
+$O(N^2)$ par tick. Au-delà de quelques centaines d'entités, cela
+deviendrait limitant. Une structure spatiale (grille uniforme,
+\emph{spatial hashing}) ramènerait le coût à $O(N \log N)$ voire
+$O(N)$ dans le cas amorti.
+
+\paragraph{Rendu widget par widget.} Chaque entité est un widget
+GTK distinct, soumis à un cycle complet de \emph{layout} et de
+\emph{styling} CSS à chaque tick. Cela limite le nombre maximal
+d'entités tenable à 60~Hz. Un rendu via \code{GtkSnapshot} ou un
+\code{GtkDrawingArea} unique avec \code{cairo} serait beaucoup
+plus efficace.
+
+\paragraph{Validation post-chargement minimale.} Le parseur
+TOML ne vérifie pas la cohérence sémantique des paramètres~: un
+\code{max\_speed} à zéro, un \code{flock\_size} négatif ou un
+\code{respawn\_delay} infini ne déclencheraient pas d'erreur. Une
+passe de validation explicite avec plages tolérées serait utile.
+
+\paragraph{Pas de tests automatisés.} Les régressions sont
+détectées par observation visuelle. Un harnais sur les fonctions
+pures (\code{vec2\_*}, parsing TOML, résolution \code{prey\_mask})
+serait peu coûteux à mettre en place.
+
+\paragraph{Pas d'instrumentation de performance.} Aucun
+compteur FPS, aucune mesure du coût d'un tick.
+
+\section{Perspectives}
+
+Plusieurs pistes d'évolution se dégagent naturellement~:
+
+\paragraph{Compteur FPS et statistiques temps réel.} Ajouter un
+panneau optionnel affichant le FPS instantané, le coût du tick,
+et le nombre d'entités vivantes par espèce. Cela faciliterait
+le \emph{tuning} et la détection de régressions de performance.
+
+\paragraph{Profils de configuration.} Permettre la sélection
+d'un fichier de configuration alternatif via un argument de
+ligne de commande \code{--config calme.conf}, et fournir
+quelques presets dans \file{presets/} (\file{calme.conf},
+\file{chaos.conf}, \file{predator-heavy.conf}).
+
+\paragraph{Sauvegarde et restauration d'état.} Permettre de
+\emph{geler} l'état complet de la simulation (positions,
+vitesses, états) et de le restaurer ultérieurement, pour
+reproduire des scénarios intéressants.
+
+\paragraph{Spatial hashing.} Implémenter une grille uniforme
+indexée sur la position des entités, mise à jour à chaque tick.
+Les recherches de voisinage deviennent localisées à quelques
+cellules.
+
+\paragraph{Rendu Cairo unique.} Remplacer les widgets
+\code{GtkPicture} par un seul \code{GtkDrawingArea} dessiné en
+Cairo, ce qui éliminerait le coût de \emph{layout} et
+permettrait d'atteindre des populations beaucoup plus
+importantes.
+
+\paragraph{Mode multijoueur.} Distribuer la simulation sur
+plusieurs instances connectées par socket UDP, avec une
+synchronisation périodique de l'état. Le déterminisme du pas
+fixe rend cet exercice tractable.
+
+\paragraph{Portage Wayland natif et Windows.} GTK4 supporte
+nativement Wayland~; un portage Windows via les paquets
+\code{MSYS2} est en théorie possible. La principale difficulté
+serait le \emph{packaging} et la gestion des chemins de
+configuration.
+
+\paragraph{Validation TOML renforcée.} Définir un schéma
+explicite des plages acceptables pour chaque paramètre, et
+émettre des avertissements quand des valeurs sortent du
+raisonnable (par exemple \code{max\_speed > 1000}).
+
+\section{Apport personnel}
+
+Au-delà du résultat livré, le projet a été l'occasion
+d'explorer en pratique~:
+
+\begin{itemize}
+  \item Le modèle de Reynolds, depuis l'article original de
+    1987 jusqu'à ses extensions modernes pour les jeux
+    vidéo~\cite{millington2009ai}.
+  \item L'écriture d'un parseur de configuration robuste en C,
+    avec gestion mémoire stricte et messages d'erreur lisibles.
+  \item Les particularités de GTK4 utilisé hors de son contexte
+    habituel (interface de bureau classique) pour piloter une
+    simulation animée temps réel.
+  \item La discipline de \emph{vendoring} d'une bibliothèque
+    tierce (\code{tomlc99}) pour garantir la reproductibilité du
+    \emph{build} sans dépendance externe.
+\end{itemize}
+
+Le \emph{refactoring} qui a fait passer la liste des espèces
+d'une \code{enum} compile-time à un registre dynamique
+runtime a en particulier été instructif~: il a fallu
+identifier précisément tous les points de couplage du code à
+l'enum, et les remplacer par des indices entiers résolus à
+l'exécution. Cette transformation, en apparence cosmétique,
+est en réalité ce qui a rendu possible l'objectif central du
+projet (configuration externe).

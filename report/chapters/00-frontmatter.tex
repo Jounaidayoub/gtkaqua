@@ -1,0 +1,50 @@
+% =========================================================================
+% Frontmatter : résumé, table des matières, listes
+% =========================================================================
+
+\chapter*{Résumé}
+\addcontentsline{toc}{chapter}{Résumé}
+
+Ce mémoire présente la conception et l'implémentation d'un aquarium virtuel
+animé écrit en C avec la bibliothèque graphique GTK4. Le système simule en
+temps réel un écosystème de poissons multi-espèces à partir d'un modèle
+comportemental dérivé des travaux de Reynolds sur le \emph{flocking}
+(séparation, alignement, cohésion), enrichi de relations prédateur/proie,
+d'un cycle de vie complet (naissance, mort, respawn) et d'une mécanique
+d'alimentation basée sur la position de la \emph{bouche} des prédateurs.
+
+L'apport principal du projet est la mise en place d'un \emph{système de
+configuration externe} fondé sur le format TOML. Ce système permet à un
+utilisateur non développeur d'ajouter une nouvelle espèce, d'en supprimer
+une, ou d'ajuster finement n'importe quel paramètre de simulation
+(vitesses, rayons de vol en banc, populations, prédateurs, etc.) en
+modifiant un seul fichier texte~: \file{aquarium.conf}. Le système
+gère les chemins de recherche standards (\file{./}, \file{\$XDG\_CONFIG\_HOME/},
+\file{/etc/}), valide les références croisées entre espèces, fournit des
+messages d'erreur lisibles, et autorise le rechargement à chaud
+depuis l'interface graphique.
+
+Sur le plan technique, le rapport détaille~: l'architecture modulaire
+(modules \code{main}, \code{world}, \code{entity}, \code{species}, \code{conf},
+\code{vec2})~; la boucle de simulation à pas fixe basée sur
+\code{g\_timeout\_add}~; la gestion d'un pool d'entités à capacité bornée~;
+la résolution des références d'espèces par index dynamique permettant
+l'ajout d'espèces depuis le fichier de configuration sans recompilation~;
+l'utilisation de transformations CSS GTK4 pour la rotation des sprites~;
+et enfin l'intégration de la bibliothèque \code{tomlc99} comme parseur
+TOML embarqué.
+
+\textbf{Mots-clés~:} simulation comportementale, flocking, boids,
+GTK4, langage C, configuration TOML, prédateur/proie, écosystème virtuel.
+
+% --- Table des matières --------------------------------------------------
+\tableofcontents
+
+% --- Liste des figures ---------------------------------------------------
+\listoffigures
+
+% --- Liste des tableaux --------------------------------------------------
+\listoftables
+
+% --- Liste des codes (minted) --------------------------------------------
+\listoflistings

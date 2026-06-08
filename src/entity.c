@@ -166,8 +166,8 @@ static Vec2 force_flee(World *w, int index, gboolean *is_fleeing) {
     }
 
     fear = vec2_scale(fear, 1.0 / (double) fear_count);
-    Vec2 desired = vec2_scale(vec2_normalize(fear), entity_max_speed(self, cfg) * ADRENALINE_BOOST);
-    Vec2 steer = steer_toward(self->vel, desired, cfg->max_force * ADRENALINE_BOOST);
+    Vec2 desired = vec2_scale(vec2_normalize(fear), entity_max_speed(self, cfg) * g_adrenaline_boost);
+    Vec2 steer = steer_toward(self->vel, desired, cfg->max_force * g_adrenaline_boost);
     *is_fleeing = TRUE;
     return vec2_scale(steer, cfg->fear_weight);
 }
@@ -272,7 +272,7 @@ void entity_tick(struct World *w, int index) {
 
     double speed_cap = entity_max_speed(e, cfg);
     if (fleeing) {
-        speed_cap *= ADRENALINE_BOOST;
+        speed_cap *= g_adrenaline_boost;
     }
     e->vel = vec2_limit(e->vel, speed_cap);
 
@@ -295,7 +295,7 @@ void entity_tick(struct World *w, int index) {
     while (diff < -180.0) {
         diff += 360.0;
     }
-    e->angle += diff * ROTATION_SMOOTH;
+    e->angle += diff * g_rotation_smooth;
 }
 
 void entity_apply_visuals(struct World *w, int index) {

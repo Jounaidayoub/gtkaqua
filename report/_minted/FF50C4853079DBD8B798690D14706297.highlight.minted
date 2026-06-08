@@ -1,0 +1,382 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+cp}{\PYGZsh{}include}\PYG{+w}{ }\PYG{c+cpf}{\PYGZdq{}entity.h\PYGZdq{}}
+
+\PYG{c+cp}{\PYGZsh{}include}\PYG{+w}{ }\PYG{c+cpf}{\PYGZlt{}math.h\PYGZgt{}}
+\PYG{c+cp}{\PYGZsh{}include}\PYG{+w}{ }\PYG{c+cpf}{\PYGZlt{}stdio.h\PYGZgt{}}
+\PYG{c+cp}{\PYGZsh{}include}\PYG{+w}{ }\PYG{c+cpf}{\PYGZlt{}stdlib.h\PYGZgt{}}
+
+\PYG{c+cp}{\PYGZsh{}include}\PYG{+w}{ }\PYG{c+cpf}{\PYGZdq{}config.h\PYGZdq{}}
+\PYG{c+cp}{\PYGZsh{}include}\PYG{+w}{ }\PYG{c+cpf}{\PYGZdq{}world.h\PYGZdq{}}
+
+\PYG{c+cp}{\PYGZsh{}ifndef M\PYGZus{}PI}
+\PYG{c+cp}{\PYGZsh{}define M\PYGZus{}PI 3.14159265358979323846}
+\PYG{c+cp}{\PYGZsh{}endif}
+
+\PYG{k}{static}\PYG{+w}{ }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n+nf}{rand\PYGZus{}range}\PYG{p}{(}\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{min\PYGZus{}v}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{max\PYGZus{}v}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{(}\PYG{k+kt}{double}\PYG{p}{)}\PYG{+w}{ }\PYG{n}{rand}\PYG{p}{()}\PYG{+w}{ }\PYG{o}{/}\PYG{+w}{ }\PYG{p}{(}\PYG{k+kt}{double}\PYG{p}{)}\PYG{+w}{ }\PYG{n}{RAND\PYGZus{}MAX}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k}{return}\PYG{+w}{ }\PYG{n}{min\PYGZus{}v}\PYG{+w}{ }\PYG{o}{+}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{max\PYGZus{}v}\PYG{+w}{ }\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{n}{min\PYGZus{}v}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{t}\PYG{p}{;}
+\PYG{p}{\PYGZcb{}}
+
+\PYG{k}{static}\PYG{+w}{ }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n+nf}{clamp\PYGZus{}double}\PYG{p}{(}\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{v}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{min\PYGZus{}v}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{max\PYGZus{}v}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{v}\PYG{+w}{ }\PYG{o}{\PYGZlt{}}\PYG{+w}{ }\PYG{n}{min\PYGZus{}v}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{k}{return}\PYG{+w}{ }\PYG{n}{min\PYGZus{}v}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{v}\PYG{+w}{ }\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{n}{max\PYGZus{}v}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{k}{return}\PYG{+w}{ }\PYG{n}{max\PYGZus{}v}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{    }\PYG{k}{return}\PYG{+w}{ }\PYG{n}{v}\PYG{p}{;}
+\PYG{p}{\PYGZcb{}}
+
+\PYG{k}{static}\PYG{+w}{ }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n+nf}{heading\PYGZus{}deg\PYGZus{}from\PYGZus{}vel}\PYG{p}{(}\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{vel}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{k}{return}\PYG{+w}{ }\PYG{n}{atan2}\PYG{p}{(}\PYG{n}{vel}\PYG{p}{.}\PYG{n}{y}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{vel}\PYG{p}{.}\PYG{n}{x}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{p}{(}\PYG{l+m+mf}{180.0}\PYG{+w}{ }\PYG{o}{/}\PYG{+w}{ }\PYG{n}{M\PYGZus{}PI}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{+}\PYG{+w}{ }\PYG{l+m+mf}{180.0}\PYG{p}{;}
+\PYG{p}{\PYGZcb{}}
+
+\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n+nf}{entity\PYGZus{}head\PYGZus{}point}\PYG{p}{(}\PYG{k}{const}\PYG{+w}{ }\PYG{n}{Entity}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{e}\PYG{p}{,}\PYG{+w}{ }\PYG{k}{const}\PYG{+w}{ }\PYG{n}{SpeciesConfig}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{cfg}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{dir}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}normalize}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{vel}\PYG{p}{);}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{vec2\PYGZus{}len\PYGZus{}sq}\PYG{p}{(}\PYG{n}{dir}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{\PYGZlt{}}\PYG{+w}{ }\PYG{l+m+mf}{1e\PYGZhy{}8}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{rad}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{angle}\PYG{+w}{ }\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{l+m+mf}{180.0}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{M\PYGZus{}PI}\PYG{+w}{ }\PYG{o}{/}\PYG{+w}{ }\PYG{l+m+mf}{180.0}\PYG{p}{);}
+\PYG{+w}{        }\PYG{n}{dir}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{Vec2}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{n}{cos}\PYG{p}{(}\PYG{n}{rad}\PYG{p}{),}\PYG{+w}{ }\PYG{n}{sin}\PYG{p}{(}\PYG{n}{rad}\PYG{p}{)\PYGZcb{};}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{forward}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{((}\PYG{k+kt}{double}\PYG{p}{)}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{sprite\PYGZus{}width}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{mouth\PYGZus{}forward\PYGZus{}ratio}\PYG{p}{);}
+\PYG{+w}{    }\PYG{k}{return}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}add}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{pos}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{dir}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{forward}\PYG{p}{));}
+\PYG{p}{\PYGZcb{}}
+
+\PYG{k}{static}\PYG{+w}{ }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n+nf}{steer\PYGZus{}toward}\PYG{p}{(}\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{current\PYGZus{}vel}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{desired\PYGZus{}vel}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{max\PYGZus{}force}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{steer}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}sub}\PYG{p}{(}\PYG{n}{desired\PYGZus{}vel}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{current\PYGZus{}vel}\PYG{p}{);}
+\PYG{+w}{    }\PYG{k}{return}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}limit}\PYG{p}{(}\PYG{n}{steer}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{max\PYGZus{}force}\PYG{p}{);}
+\PYG{p}{\PYGZcb{}}
+
+\PYG{k}{static}\PYG{+w}{ }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n+nf}{entity\PYGZus{}max\PYGZus{}speed}\PYG{p}{(}\PYG{k}{const}\PYG{+w}{ }\PYG{n}{Entity}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{e}\PYG{p}{,}\PYG{+w}{ }\PYG{k}{const}\PYG{+w}{ }\PYG{n}{SpeciesConfig}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{cfg}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{k}{return}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{max\PYGZus{}speed}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{speed\PYGZus{}scale}\PYG{p}{;}
+\PYG{p}{\PYGZcb{}}
+
+\PYG{k}{static}\PYG{+w}{ }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n+nf}{entity\PYGZus{}min\PYGZus{}speed}\PYG{p}{(}\PYG{k}{const}\PYG{+w}{ }\PYG{n}{Entity}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{e}\PYG{p}{,}\PYG{+w}{ }\PYG{k}{const}\PYG{+w}{ }\PYG{n}{SpeciesConfig}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{cfg}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{k}{return}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{min\PYGZus{}speed}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{speed\PYGZus{}scale}\PYG{p}{;}
+\PYG{p}{\PYGZcb{}}
+
+\PYG{k}{static}\PYG{+w}{ }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n+nf}{force\PYGZus{}boids}\PYG{p}{(}\PYG{n}{World}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{w}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{index}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{n}{Entity}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{self}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{o}{\PYGZam{}}\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{entities}\PYG{p}{[}\PYG{n}{index}\PYG{p}{];}
+\PYG{+w}{    }\PYG{k}{const}\PYG{+w}{ }\PYG{n}{SpeciesConfig}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{cfg}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{species\PYGZus{}get}\PYG{p}{(}\PYG{n}{self}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{species}\PYG{p}{);}
+
+\PYG{+w}{    }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{separation}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{l+m+mf}{0.0}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{p}{\PYGZcb{};}
+\PYG{+w}{    }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{alignment}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{l+m+mf}{0.0}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{p}{\PYGZcb{};}
+\PYG{+w}{    }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{cohesion\PYGZus{}sum}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{l+m+mf}{0.0}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{p}{\PYGZcb{};}
+\PYG{+w}{    }\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{sep\PYGZus{}count}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{ali\PYGZus{}count}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{coh\PYGZus{}count}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}
+
+\PYG{+w}{    }\PYG{k}{for}\PYG{+w}{ }\PYG{p}{(}\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{o}{\PYGZlt{}}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{entity\PYGZus{}count}\PYG{p}{;}\PYG{+w}{ }\PYG{n}{i}\PYG{o}{++}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{i}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{n}{index}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{            }\PYG{k}{continue}\PYG{p}{;}
+\PYG{+w}{        }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{        }\PYG{n}{Entity}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{other}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{o}{\PYGZam{}}\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{entities}\PYG{p}{[}\PYG{n}{i}\PYG{p}{];}
+\PYG{+w}{        }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{other}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{state}\PYG{+w}{ }\PYG{o}{!=}\PYG{+w}{ }\PYG{n}{ENTITY\PYGZus{}ALIVE}\PYG{+w}{ }\PYG{o}{||}\PYG{+w}{ }\PYG{n}{other}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{species}\PYG{+w}{ }\PYG{o}{!=}\PYG{+w}{ }\PYG{n}{self}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{species}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{            }\PYG{k}{continue}\PYG{p}{;}
+\PYG{+w}{        }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{        }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{d}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}delta\PYGZus{}wrap}\PYG{p}{(}\PYG{n}{self}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{pos}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{other}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{pos}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{width}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{height}\PYG{p}{);}
+\PYG{+w}{        }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{dist\PYGZus{}sq}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}len\PYGZus{}sq}\PYG{p}{(}\PYG{n}{d}\PYG{p}{);}
+\PYG{+w}{        }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{dist\PYGZus{}sq}\PYG{+w}{ }\PYG{o}{\PYGZlt{}}\PYG{+w}{ }\PYG{l+m+mf}{1e\PYGZhy{}6}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{            }\PYG{k}{continue}\PYG{p}{;}
+\PYG{+w}{        }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{        }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{dist\PYGZus{}sq}\PYG{+w}{ }\PYG{o}{\PYGZlt{}}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{separation\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{separation\PYGZus{}radius}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{            }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{away}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{d}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mf}{\PYGZhy{}1.0}\PYG{+w}{ }\PYG{o}{/}\PYG{+w}{ }\PYG{n}{dist\PYGZus{}sq}\PYG{p}{);}
+\PYG{+w}{            }\PYG{n}{separation}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}add}\PYG{p}{(}\PYG{n}{separation}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{away}\PYG{p}{);}
+\PYG{+w}{            }\PYG{n}{sep\PYGZus{}count}\PYG{o}{++}\PYG{p}{;}
+\PYG{+w}{        }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{        }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{dist\PYGZus{}sq}\PYG{+w}{ }\PYG{o}{\PYGZlt{}}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{alignment\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{alignment\PYGZus{}radius}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{            }\PYG{n}{alignment}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}add}\PYG{p}{(}\PYG{n}{alignment}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{other}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{vel}\PYG{p}{);}
+\PYG{+w}{            }\PYG{n}{ali\PYGZus{}count}\PYG{o}{++}\PYG{p}{;}
+\PYG{+w}{        }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{        }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{dist\PYGZus{}sq}\PYG{+w}{ }\PYG{o}{\PYGZlt{}}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{cohesion\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{cohesion\PYGZus{}radius}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{            }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{local}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}add}\PYG{p}{(}\PYG{n}{self}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{pos}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{d}\PYG{p}{);}
+\PYG{+w}{            }\PYG{n}{cohesion\PYGZus{}sum}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}add}\PYG{p}{(}\PYG{n}{cohesion\PYGZus{}sum}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{local}\PYG{p}{);}
+\PYG{+w}{            }\PYG{n}{coh\PYGZus{}count}\PYG{o}{++}\PYG{p}{;}
+\PYG{+w}{        }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{    }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{out}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{l+m+mf}{0.0}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{p}{\PYGZcb{};}
+
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{sep\PYGZus{}count}\PYG{+w}{ }\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{n}{separation}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{separation}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mf}{1.0}\PYG{+w}{ }\PYG{o}{/}\PYG{+w}{ }\PYG{p}{(}\PYG{k+kt}{double}\PYG{p}{)}\PYG{+w}{ }\PYG{n}{sep\PYGZus{}count}\PYG{p}{);}
+\PYG{+w}{        }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{desired}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{vec2\PYGZus{}normalize}\PYG{p}{(}\PYG{n}{separation}\PYG{p}{),}\PYG{+w}{ }\PYG{n}{entity\PYGZus{}max\PYGZus{}speed}\PYG{p}{(}\PYG{n}{self}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{cfg}\PYG{p}{));}
+\PYG{+w}{        }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{steer}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{steer\PYGZus{}toward}\PYG{p}{(}\PYG{n}{self}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{vel}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{desired}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{max\PYGZus{}force}\PYG{p}{);}
+\PYG{+w}{        }\PYG{n}{out}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}add}\PYG{p}{(}\PYG{n}{out}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{steer}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{separation\PYGZus{}weight}\PYG{p}{));}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{ali\PYGZus{}count}\PYG{+w}{ }\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{n}{alignment}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{alignment}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mf}{1.0}\PYG{+w}{ }\PYG{o}{/}\PYG{+w}{ }\PYG{p}{(}\PYG{k+kt}{double}\PYG{p}{)}\PYG{+w}{ }\PYG{n}{ali\PYGZus{}count}\PYG{p}{);}
+\PYG{+w}{        }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{desired}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{vec2\PYGZus{}normalize}\PYG{p}{(}\PYG{n}{alignment}\PYG{p}{),}\PYG{+w}{ }\PYG{n}{entity\PYGZus{}max\PYGZus{}speed}\PYG{p}{(}\PYG{n}{self}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{cfg}\PYG{p}{));}
+\PYG{+w}{        }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{steer}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{steer\PYGZus{}toward}\PYG{p}{(}\PYG{n}{self}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{vel}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{desired}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{max\PYGZus{}force}\PYG{p}{);}
+\PYG{+w}{        }\PYG{n}{out}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}add}\PYG{p}{(}\PYG{n}{out}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{steer}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{alignment\PYGZus{}weight}\PYG{p}{));}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{coh\PYGZus{}count}\PYG{+w}{ }\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{center}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{cohesion\PYGZus{}sum}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mf}{1.0}\PYG{+w}{ }\PYG{o}{/}\PYG{+w}{ }\PYG{p}{(}\PYG{k+kt}{double}\PYG{p}{)}\PYG{+w}{ }\PYG{n}{coh\PYGZus{}count}\PYG{p}{);}
+\PYG{+w}{        }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{to\PYGZus{}center}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}sub}\PYG{p}{(}\PYG{n}{center}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{self}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{pos}\PYG{p}{);}
+\PYG{+w}{        }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{desired}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{vec2\PYGZus{}normalize}\PYG{p}{(}\PYG{n}{to\PYGZus{}center}\PYG{p}{),}\PYG{+w}{ }\PYG{n}{entity\PYGZus{}max\PYGZus{}speed}\PYG{p}{(}\PYG{n}{self}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{cfg}\PYG{p}{));}
+\PYG{+w}{        }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{steer}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{steer\PYGZus{}toward}\PYG{p}{(}\PYG{n}{self}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{vel}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{desired}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{max\PYGZus{}force}\PYG{p}{);}
+\PYG{+w}{        }\PYG{n}{out}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}add}\PYG{p}{(}\PYG{n}{out}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{steer}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{cohesion\PYGZus{}weight}\PYG{p}{));}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{    }\PYG{k}{return}\PYG{+w}{ }\PYG{n}{out}\PYG{p}{;}
+\PYG{p}{\PYGZcb{}}
+
+\PYG{k}{static}\PYG{+w}{ }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n+nf}{force\PYGZus{}flee}\PYG{p}{(}\PYG{n}{World}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{w}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{index}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{gboolean}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{is\PYGZus{}fleeing}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{n}{Entity}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{self}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{o}{\PYGZam{}}\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{entities}\PYG{p}{[}\PYG{n}{index}\PYG{p}{];}
+\PYG{+w}{    }\PYG{k}{const}\PYG{+w}{ }\PYG{n}{SpeciesConfig}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{cfg}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{species\PYGZus{}get}\PYG{p}{(}\PYG{n}{self}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{species}\PYG{p}{);}
+\PYG{+w}{    }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{fear}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{l+m+mf}{0.0}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{p}{\PYGZcb{};}
+\PYG{+w}{    }\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{fear\PYGZus{}count}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}
+
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{fear\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{\PYGZlt{}=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{+w}{ }\PYG{o}{||}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{fear\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{\PYGZlt{}=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{o}{*}\PYG{n}{is\PYGZus{}fleeing}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{FALSE}\PYG{p}{;}
+\PYG{+w}{        }\PYG{k}{return}\PYG{+w}{ }\PYG{n}{fear}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{    }\PYG{k}{for}\PYG{+w}{ }\PYG{p}{(}\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{o}{\PYGZlt{}}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{entity\PYGZus{}count}\PYG{p}{;}\PYG{+w}{ }\PYG{n}{i}\PYG{o}{++}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{i}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{n}{index}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{            }\PYG{k}{continue}\PYG{p}{;}
+\PYG{+w}{        }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{        }\PYG{n}{Entity}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{other}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{o}{\PYGZam{}}\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{entities}\PYG{p}{[}\PYG{n}{i}\PYG{p}{];}
+\PYG{+w}{        }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{other}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{state}\PYG{+w}{ }\PYG{o}{!=}\PYG{+w}{ }\PYG{n}{ENTITY\PYGZus{}ALIVE}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{            }\PYG{k}{continue}\PYG{p}{;}
+\PYG{+w}{        }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{        }\PYG{k}{const}\PYG{+w}{ }\PYG{n}{SpeciesConfig}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{other\PYGZus{}cfg}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{species\PYGZus{}get}\PYG{p}{(}\PYG{n}{other}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{species}\PYG{p}{);}
+\PYG{+w}{        }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{o}{!}\PYG{n}{EATS}\PYG{p}{(}\PYG{o}{*}\PYG{n}{other\PYGZus{}cfg}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{self}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{species}\PYG{p}{))}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{            }\PYG{k}{continue}\PYG{p}{;}
+\PYG{+w}{        }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{        }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{d}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}delta\PYGZus{}wrap}\PYG{p}{(}\PYG{n}{self}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{pos}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{other}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{pos}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{width}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{height}\PYG{p}{);}
+\PYG{+w}{        }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{dist\PYGZus{}sq}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}len\PYGZus{}sq}\PYG{p}{(}\PYG{n}{d}\PYG{p}{);}
+\PYG{+w}{        }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{dist\PYGZus{}sq}\PYG{+w}{ }\PYG{o}{\PYGZgt{}=}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{fear\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{fear\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{||}\PYG{+w}{ }\PYG{n}{dist\PYGZus{}sq}\PYG{+w}{ }\PYG{o}{\PYGZlt{}}\PYG{+w}{ }\PYG{l+m+mf}{1e\PYGZhy{}8}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{            }\PYG{k}{continue}\PYG{p}{;}
+\PYG{+w}{        }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{        }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{away}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{d}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mf}{\PYGZhy{}1.0}\PYG{+w}{ }\PYG{o}{/}\PYG{+w}{ }\PYG{n}{dist\PYGZus{}sq}\PYG{p}{);}
+\PYG{+w}{        }\PYG{n}{fear}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}add}\PYG{p}{(}\PYG{n}{fear}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{away}\PYG{p}{);}
+\PYG{+w}{        }\PYG{n}{fear\PYGZus{}count}\PYG{o}{++}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{fear\PYGZus{}count}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{o}{*}\PYG{n}{is\PYGZus{}fleeing}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{FALSE}\PYG{p}{;}
+\PYG{+w}{        }\PYG{k}{return}\PYG{+w}{ }\PYG{n}{fear}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{    }\PYG{n}{fear}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{fear}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mf}{1.0}\PYG{+w}{ }\PYG{o}{/}\PYG{+w}{ }\PYG{p}{(}\PYG{k+kt}{double}\PYG{p}{)}\PYG{+w}{ }\PYG{n}{fear\PYGZus{}count}\PYG{p}{);}
+\PYG{+w}{    }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{desired}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{vec2\PYGZus{}normalize}\PYG{p}{(}\PYG{n}{fear}\PYG{p}{),}\PYG{+w}{ }\PYG{n}{entity\PYGZus{}max\PYGZus{}speed}\PYG{p}{(}\PYG{n}{self}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{cfg}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{g\PYGZus{}adrenaline\PYGZus{}boost}\PYG{p}{);}
+\PYG{+w}{    }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{steer}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{steer\PYGZus{}toward}\PYG{p}{(}\PYG{n}{self}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{vel}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{desired}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{max\PYGZus{}force}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{g\PYGZus{}adrenaline\PYGZus{}boost}\PYG{p}{);}
+\PYG{+w}{    }\PYG{o}{*}\PYG{n}{is\PYGZus{}fleeing}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{TRUE}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k}{return}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{steer}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{fear\PYGZus{}weight}\PYG{p}{);}
+\PYG{p}{\PYGZcb{}}
+
+\PYG{k}{static}\PYG{+w}{ }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n+nf}{force\PYGZus{}hunt}\PYG{p}{(}\PYG{n}{World}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{w}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{index}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{n}{Entity}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{self}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{o}{\PYGZam{}}\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{entities}\PYG{p}{[}\PYG{n}{index}\PYG{p}{];}
+\PYG{+w}{    }\PYG{k}{const}\PYG{+w}{ }\PYG{n}{SpeciesConfig}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{cfg}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{species\PYGZus{}get}\PYG{p}{(}\PYG{n}{self}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{species}\PYG{p}{);}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{hunt\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{\PYGZlt{}=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{+w}{ }\PYG{o}{||}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{hunt\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{\PYGZlt{}=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{+w}{ }\PYG{o}{||}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{prey\PYGZus{}mask}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{z}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{l+m+mf}{0.0}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{p}{\PYGZcb{};}
+\PYG{+w}{        }\PYG{k}{return}\PYG{+w}{ }\PYG{n}{z}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{    }\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{nearest}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{\PYGZhy{}1}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{nearest\PYGZus{}dist\PYGZus{}sq}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{hunt\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{hunt\PYGZus{}radius}\PYG{p}{;}
+
+\PYG{+w}{    }\PYG{k}{for}\PYG{+w}{ }\PYG{p}{(}\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{o}{\PYGZlt{}}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{entity\PYGZus{}count}\PYG{p}{;}\PYG{+w}{ }\PYG{n}{i}\PYG{o}{++}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{i}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{n}{index}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{            }\PYG{k}{continue}\PYG{p}{;}
+\PYG{+w}{        }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{        }\PYG{n}{Entity}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{other}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{o}{\PYGZam{}}\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{entities}\PYG{p}{[}\PYG{n}{i}\PYG{p}{];}
+\PYG{+w}{        }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{other}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{state}\PYG{+w}{ }\PYG{o}{!=}\PYG{+w}{ }\PYG{n}{ENTITY\PYGZus{}ALIVE}\PYG{+w}{ }\PYG{o}{||}\PYG{+w}{ }\PYG{o}{!}\PYG{n}{EATS}\PYG{p}{(}\PYG{o}{*}\PYG{n}{cfg}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{other}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{species}\PYG{p}{))}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{            }\PYG{k}{continue}\PYG{p}{;}
+\PYG{+w}{        }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{        }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{dist\PYGZus{}sq}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}dist\PYGZus{}sq\PYGZus{}wrap}\PYG{p}{(}\PYG{n}{self}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{pos}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{other}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{pos}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{width}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{height}\PYG{p}{);}
+\PYG{+w}{        }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{dist\PYGZus{}sq}\PYG{+w}{ }\PYG{o}{\PYGZlt{}}\PYG{+w}{ }\PYG{n}{nearest\PYGZus{}dist\PYGZus{}sq}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{            }\PYG{n}{nearest\PYGZus{}dist\PYGZus{}sq}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{dist\PYGZus{}sq}\PYG{p}{;}
+\PYG{+w}{            }\PYG{n}{nearest}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{i}\PYG{p}{;}
+\PYG{+w}{        }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{nearest}\PYG{+w}{ }\PYG{o}{\PYGZlt{}}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{z}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{l+m+mf}{0.0}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{p}{\PYGZcb{};}
+\PYG{+w}{        }\PYG{k}{return}\PYG{+w}{ }\PYG{n}{z}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{    }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{delta}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}delta\PYGZus{}wrap}\PYG{p}{(}\PYG{n}{self}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{pos}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{entities}\PYG{p}{[}\PYG{n}{nearest}\PYG{p}{].}\PYG{n}{pos}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{width}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{height}\PYG{p}{);}
+\PYG{+w}{    }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{desired}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{vec2\PYGZus{}normalize}\PYG{p}{(}\PYG{n}{delta}\PYG{p}{),}\PYG{+w}{ }\PYG{n}{entity\PYGZus{}max\PYGZus{}speed}\PYG{p}{(}\PYG{n}{self}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{cfg}\PYG{p}{));}
+\PYG{+w}{    }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{steer}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{steer\PYGZus{}toward}\PYG{p}{(}\PYG{n}{self}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{vel}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{desired}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{max\PYGZus{}force}\PYG{p}{);}
+\PYG{+w}{    }\PYG{k}{return}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{steer}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{hunt\PYGZus{}weight}\PYG{p}{);}
+\PYG{p}{\PYGZcb{}}
+
+\PYG{k}{static}\PYG{+w}{ }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n+nf}{force\PYGZus{}same\PYGZus{}species\PYGZus{}avoid}\PYG{p}{(}\PYG{n}{World}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{w}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{index}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{n}{Entity}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{self}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{o}{\PYGZam{}}\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{entities}\PYG{p}{[}\PYG{n}{index}\PYG{p}{];}
+\PYG{+w}{    }\PYG{k}{const}\PYG{+w}{ }\PYG{n}{SpeciesConfig}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{cfg}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{species\PYGZus{}get}\PYG{p}{(}\PYG{n}{self}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{species}\PYG{p}{);}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{cfg}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{ }\PYG{o}{||}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{avoid\PYGZus{}same\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{\PYGZlt{}=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{+w}{ }\PYG{o}{||}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{avoid\PYGZus{}same\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{\PYGZlt{}=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{k}{return}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{Vec2}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{l+m+mf}{0.0}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{p}{\PYGZcb{};}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{    }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{away}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{l+m+mf}{0.0}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{p}{\PYGZcb{};}
+\PYG{+w}{    }\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{count}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}
+
+\PYG{+w}{    }\PYG{k}{for}\PYG{+w}{ }\PYG{p}{(}\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{o}{\PYGZlt{}}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{entity\PYGZus{}count}\PYG{p}{;}\PYG{+w}{ }\PYG{n}{i}\PYG{o}{++}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{i}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{n}{index}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{            }\PYG{k}{continue}\PYG{p}{;}
+\PYG{+w}{        }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{        }\PYG{n}{Entity}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{other}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{o}{\PYGZam{}}\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{entities}\PYG{p}{[}\PYG{n}{i}\PYG{p}{];}
+\PYG{+w}{        }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{other}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{state}\PYG{+w}{ }\PYG{o}{!=}\PYG{+w}{ }\PYG{n}{ENTITY\PYGZus{}ALIVE}\PYG{+w}{ }\PYG{o}{||}\PYG{+w}{ }\PYG{n}{other}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{species}\PYG{+w}{ }\PYG{o}{!=}\PYG{+w}{ }\PYG{n}{self}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{species}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{            }\PYG{k}{continue}\PYG{p}{;}
+\PYG{+w}{        }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{        }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{d}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}delta\PYGZus{}wrap}\PYG{p}{(}\PYG{n}{self}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{pos}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{other}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{pos}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{width}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{height}\PYG{p}{);}
+\PYG{+w}{        }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{dist\PYGZus{}sq}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}len\PYGZus{}sq}\PYG{p}{(}\PYG{n}{d}\PYG{p}{);}
+\PYG{+w}{        }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{dist\PYGZus{}sq}\PYG{+w}{ }\PYG{o}{\PYGZlt{}}\PYG{+w}{ }\PYG{l+m+mf}{1e\PYGZhy{}6}\PYG{+w}{ }\PYG{o}{||}\PYG{+w}{ }\PYG{n}{dist\PYGZus{}sq}\PYG{+w}{ }\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{avoid\PYGZus{}same\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{avoid\PYGZus{}same\PYGZus{}radius}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{            }\PYG{k}{continue}\PYG{p}{;}
+\PYG{+w}{        }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{        }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{push}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{d}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mf}{\PYGZhy{}1.0}\PYG{+w}{ }\PYG{o}{/}\PYG{+w}{ }\PYG{n}{dist\PYGZus{}sq}\PYG{p}{);}
+\PYG{+w}{        }\PYG{n}{away}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}add}\PYG{p}{(}\PYG{n}{away}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{push}\PYG{p}{);}
+\PYG{+w}{        }\PYG{n}{count}\PYG{o}{++}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{count}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{k}{return}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{Vec2}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{l+m+mf}{0.0}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{p}{\PYGZcb{};}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{    }\PYG{n}{away}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{away}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mf}{1.0}\PYG{+w}{ }\PYG{o}{/}\PYG{+w}{ }\PYG{p}{(}\PYG{k+kt}{double}\PYG{p}{)}\PYG{+w}{ }\PYG{n}{count}\PYG{p}{);}
+\PYG{+w}{    }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{desired}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{vec2\PYGZus{}normalize}\PYG{p}{(}\PYG{n}{away}\PYG{p}{),}\PYG{+w}{ }\PYG{n}{entity\PYGZus{}max\PYGZus{}speed}\PYG{p}{(}\PYG{n}{self}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{cfg}\PYG{p}{));}
+\PYG{+w}{    }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{steer}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{steer\PYGZus{}toward}\PYG{p}{(}\PYG{n}{self}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{vel}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{desired}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{max\PYGZus{}force}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{l+m+mf}{1.5}\PYG{p}{);}
+\PYG{+w}{    }\PYG{k}{return}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{steer}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{avoid\PYGZus{}same\PYGZus{}weight}\PYG{p}{);}
+\PYG{p}{\PYGZcb{}}
+
+\PYG{k+kt}{void}\PYG{+w}{ }\PYG{n+nf}{entity\PYGZus{}tick}\PYG{p}{(}\PYG{k}{struct}\PYG{+w}{ }\PYG{n+nc}{World}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{w}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{index}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{n}{Entity}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{e}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{o}{\PYGZam{}}\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{entities}\PYG{p}{[}\PYG{n}{index}\PYG{p}{];}
+\PYG{+w}{    }\PYG{k}{const}\PYG{+w}{ }\PYG{n}{SpeciesConfig}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{cfg}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{species\PYGZus{}get}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{species}\PYG{p}{);}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{state}\PYG{+w}{ }\PYG{o}{!=}\PYG{+w}{ }\PYG{n}{ENTITY\PYGZus{}ALIVE}\PYG{+w}{ }\PYG{o}{||}\PYG{+w}{ }\PYG{n}{cfg}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{k}{return}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{    }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{age}\PYG{+w}{ }\PYG{o}{+=}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{dt}\PYG{p}{;}
+\PYG{+w}{    }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{acc}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{Vec2}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{l+m+mf}{0.0}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{p}{\PYGZcb{};}
+
+\PYG{+w}{    }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{acc}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}add}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{acc}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{force\PYGZus{}boids}\PYG{p}{(}\PYG{n}{w}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{index}\PYG{p}{));}
+
+\PYG{+w}{    }\PYG{n}{gboolean}\PYG{+w}{ }\PYG{n}{fleeing}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{FALSE}\PYG{p}{;}
+\PYG{+w}{    }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{acc}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}add}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{acc}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{force\PYGZus{}flee}\PYG{p}{(}\PYG{n}{w}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{index}\PYG{p}{,}\PYG{+w}{ }\PYG{o}{\PYGZam{}}\PYG{n}{fleeing}\PYG{p}{));}
+\PYG{+w}{    }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{acc}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}add}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{acc}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{force\PYGZus{}hunt}\PYG{p}{(}\PYG{n}{w}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{index}\PYG{p}{));}
+\PYG{+w}{    }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{acc}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}add}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{acc}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{force\PYGZus{}same\PYGZus{}species\PYGZus{}avoid}\PYG{p}{(}\PYG{n}{w}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{index}\PYG{p}{));}
+
+\PYG{+w}{    }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{acc}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}limit}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{acc}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{max\PYGZus{}force}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{l+m+mf}{4.0}\PYG{p}{);}
+\PYG{+w}{    }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{vel}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}add}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{vel}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{acc}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{dt}\PYG{p}{));}
+
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{speed\PYGZus{}cap}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{entity\PYGZus{}max\PYGZus{}speed}\PYG{p}{(}\PYG{n}{e}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{cfg}\PYG{p}{);}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{fleeing}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{n}{speed\PYGZus{}cap}\PYG{+w}{ }\PYG{o}{*=}\PYG{+w}{ }\PYG{n}{g\PYGZus{}adrenaline\PYGZus{}boost}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{    }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{vel}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}limit}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{vel}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{speed\PYGZus{}cap}\PYG{p}{);}
+
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{speed\PYGZus{}sq}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}len\PYGZus{}sq}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{vel}\PYG{p}{);}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{min\PYGZus{}speed}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{entity\PYGZus{}min\PYGZus{}speed}\PYG{p}{(}\PYG{n}{e}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{cfg}\PYG{p}{);}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{speed\PYGZus{}sq}\PYG{+w}{ }\PYG{o}{\PYGZlt{}}\PYG{+w}{ }\PYG{n}{min\PYGZus{}speed}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{min\PYGZus{}speed}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{speed}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{sqrt}\PYG{p}{(}\PYG{n}{speed\PYGZus{}sq}\PYG{p}{);}
+\PYG{+w}{        }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{dir}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{speed}\PYG{+w}{ }\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{l+m+mf}{1e\PYGZhy{}6}\PYG{+w}{ }\PYG{o}{?}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{vel}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mf}{1.0}\PYG{+w}{ }\PYG{o}{/}\PYG{+w}{ }\PYG{n}{speed}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}random\PYGZus{}unit}\PYG{p}{();}
+\PYG{+w}{        }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{vel}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{dir}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{rand\PYGZus{}range}\PYG{p}{(}\PYG{n}{entity\PYGZus{}min\PYGZus{}speed}\PYG{p}{(}\PYG{n}{e}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{cfg}\PYG{p}{),}\PYG{+w}{ }\PYG{n}{speed\PYGZus{}cap}\PYG{p}{));}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{    }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{pos}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}add}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{pos}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{vel}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{dt}\PYG{p}{));}
+\PYG{+w}{    }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{pos}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}wrap}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{pos}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{width}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{height}\PYG{p}{);}
+
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{target\PYGZus{}deg}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{heading\PYGZus{}deg\PYGZus{}from\PYGZus{}vel}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{vel}\PYG{p}{);}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{diff}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{target\PYGZus{}deg}\PYG{+w}{ }\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{angle}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k}{while}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{diff}\PYG{+w}{ }\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{l+m+mf}{180.0}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{n}{diff}\PYG{+w}{ }\PYG{o}{\PYGZhy{}=}\PYG{+w}{ }\PYG{l+m+mf}{360.0}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{    }\PYG{k}{while}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{diff}\PYG{+w}{ }\PYG{o}{\PYGZlt{}}\PYG{+w}{ }\PYG{l+m+mf}{\PYGZhy{}180.0}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{n}{diff}\PYG{+w}{ }\PYG{o}{+=}\PYG{+w}{ }\PYG{l+m+mf}{360.0}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{    }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{angle}\PYG{+w}{ }\PYG{o}{+=}\PYG{+w}{ }\PYG{n}{diff}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{g\PYGZus{}rotation\PYGZus{}smooth}\PYG{p}{;}
+\PYG{p}{\PYGZcb{}}
+
+\PYG{k+kt}{void}\PYG{+w}{ }\PYG{n+nf}{entity\PYGZus{}apply\PYGZus{}visuals}\PYG{p}{(}\PYG{k}{struct}\PYG{+w}{ }\PYG{n+nc}{World}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{w}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{index}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{n}{Entity}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{e}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{o}{\PYGZam{}}\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{entities}\PYG{p}{[}\PYG{n}{index}\PYG{p}{];}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{widget}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{ }\PYG{o}{||}\PYG{+w}{ }\PYG{o}{!}\PYG{n}{GTK\PYGZus{}IS\PYGZus{}WIDGET}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{widget}\PYG{p}{))}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{k}{return}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{state}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{n}{ENTITY\PYGZus{}INACTIVE}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{GTK\PYGZus{}IS\PYGZus{}WIDGET}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{widget}\PYG{p}{))}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{            }\PYG{n}{gtk\PYGZus{}widget\PYGZus{}set\PYGZus{}visible}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{widget}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{FALSE}\PYG{p}{);}
+\PYG{+w}{        }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{        }\PYG{k}{return}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{    }\PYG{k}{const}\PYG{+w}{ }\PYG{n}{SpeciesConfig}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{cfg}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{species\PYGZus{}get}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{species}\PYG{p}{);}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{cfg}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{k}{return}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{    }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{head}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{entity\PYGZus{}head\PYGZus{}point}\PYG{p}{(}\PYG{n}{e}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{cfg}\PYG{p}{);}
+\PYG{+w}{    }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{dir}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}normalize}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{vel}\PYG{p}{);}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{vec2\PYGZus{}len\PYGZus{}sq}\PYG{p}{(}\PYG{n}{dir}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{\PYGZlt{}}\PYG{+w}{ }\PYG{l+m+mf}{1e\PYGZhy{}8}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{rad}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{angle}\PYG{+w}{ }\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{l+m+mf}{180.0}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{M\PYGZus{}PI}\PYG{+w}{ }\PYG{o}{/}\PYG{+w}{ }\PYG{l+m+mf}{180.0}\PYG{p}{);}
+\PYG{+w}{        }\PYG{n}{dir}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{Vec2}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{n}{cos}\PYG{p}{(}\PYG{n}{rad}\PYG{p}{),}\PYG{+w}{ }\PYG{n}{sin}\PYG{p}{(}\PYG{n}{rad}\PYG{p}{)\PYGZcb{};}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{head\PYGZus{}offset}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{((}\PYG{k+kt}{double}\PYG{p}{)}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{sprite\PYGZus{}width}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{mouth\PYGZus{}forward\PYGZus{}ratio}\PYG{p}{);}
+\PYG{+w}{    }\PYG{n}{Vec2}\PYG{+w}{ }\PYG{n}{center}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}sub}\PYG{p}{(}\PYG{n}{head}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{vec2\PYGZus{}scale}\PYG{p}{(}\PYG{n}{dir}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{head\PYGZus{}offset}\PYG{p}{));}
+
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{draw\PYGZus{}x}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{center}\PYG{p}{.}\PYG{n}{x}\PYG{+w}{ }\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{p}{((}\PYG{k+kt}{double}\PYG{p}{)}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{sprite\PYGZus{}width}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{l+m+mf}{0.5}\PYG{p}{);}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{draw\PYGZus{}y}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{center}\PYG{p}{.}\PYG{n}{y}\PYG{+w}{ }\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{p}{((}\PYG{k+kt}{double}\PYG{p}{)}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{sprite\PYGZus{}height}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{l+m+mf}{0.5}\PYG{p}{);}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{max\PYGZus{}x}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{width}\PYG{+w}{ }\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{p}{(}\PYG{k+kt}{double}\PYG{p}{)}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{sprite\PYGZus{}width}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{max\PYGZus{}y}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{height}\PYG{+w}{ }\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{p}{(}\PYG{k+kt}{double}\PYG{p}{)}\PYG{+w}{ }\PYG{n}{cfg}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{sprite\PYGZus{}height}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{max\PYGZus{}x}\PYG{+w}{ }\PYG{o}{\PYGZlt{}}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{n}{max\PYGZus{}x}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{max\PYGZus{}y}\PYG{+w}{ }\PYG{o}{\PYGZlt{}}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{n}{max\PYGZus{}y}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{    }\PYG{n}{draw\PYGZus{}x}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{clamp\PYGZus{}double}\PYG{p}{(}\PYG{n}{draw\PYGZus{}x}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{max\PYGZus{}x}\PYG{p}{);}
+\PYG{+w}{    }\PYG{n}{draw\PYGZus{}y}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{clamp\PYGZus{}double}\PYG{p}{(}\PYG{n}{draw\PYGZus{}y}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{max\PYGZus{}y}\PYG{p}{);}
+
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{container}\PYG{+w}{ }\PYG{o}{!=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{ }\PYG{o}{\PYGZam{}\PYGZam{}}\PYG{+w}{ }\PYG{n}{GTK\PYGZus{}IS\PYGZus{}FIXED}\PYG{p}{(}\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{container}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{\PYGZam{}\PYGZam{}}\PYG{+w}{ }\PYG{n}{GTK\PYGZus{}IS\PYGZus{}WIDGET}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{widget}\PYG{p}{))}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{n}{gtk\PYGZus{}fixed\PYGZus{}move}\PYG{p}{(}\PYG{n}{GTK\PYGZus{}FIXED}\PYG{p}{(}\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{container}\PYG{p}{),}\PYG{+w}{ }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{widget}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{draw\PYGZus{}x}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{draw\PYGZus{}y}\PYG{p}{);}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{css\PYGZus{}provider}\PYG{+w}{ }\PYG{o}{!=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{k+kt}{char}\PYG{+w}{ }\PYG{n}{css}\PYG{p}{[}\PYG{l+m+mi}{224}\PYG{p}{];}
+\PYG{+w}{        }\PYG{n}{g\PYGZus{}printerr}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}DEBUG: css\PYGZus{}provider=\PYGZpc{}p id=\PYGZpc{}d state=\PYGZpc{}d}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{\PYGZdq{}}\PYG{p}{,}\PYG{+w}{ }\PYG{p}{(}\PYG{k+kt}{void}\PYG{o}{*}\PYG{p}{)}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{css\PYGZus{}provider}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{id}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{state}\PYG{p}{);}
+\PYG{+w}{        }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{state}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{n}{ENTITY\PYGZus{}DYING}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{            }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{pulse}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{fmod}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{death\PYGZus{}timer}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{l+m+mf}{24.0}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mf}{2.0}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{\PYGZlt{}}\PYG{+w}{ }\PYG{l+m+mf}{1.0}\PYG{+w}{ }\PYG{o}{?}\PYG{+w}{ }\PYG{l+m+mf}{1.0}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{p}{;}
+\PYG{+w}{            }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{scale}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.15}\PYG{+w}{ }\PYG{o}{+}\PYG{+w}{ }\PYG{p}{(}\PYG{l+m+mf}{0.35}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{pulse}\PYG{p}{);}
+\PYG{+w}{            }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{opacity}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.35}\PYG{+w}{ }\PYG{o}{+}\PYG{+w}{ }\PYG{p}{(}\PYG{l+m+mf}{0.55}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{pulse}\PYG{p}{);}
+\PYG{+w}{            }\PYG{n}{snprintf}\PYG{p}{(}
+\PYG{+w}{                }\PYG{n}{css}\PYG{p}{,}
+\PYG{+w}{                }\PYG{k}{sizeof}\PYG{p}{(}\PYG{n}{css}\PYG{p}{),}
+\PYG{+w}{                }\PYG{l+s}{\PYGZdq{}.\PYGZpc{}s \PYGZob{} transform: rotate(\PYGZpc{}.1fdeg) scale(\PYGZpc{}.2f); opacity: \PYGZpc{}.2f; \PYGZcb{}\PYGZdq{}}\PYG{p}{,}
+\PYG{+w}{                }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{css\PYGZus{}class}\PYG{p}{,}
+\PYG{+w}{                }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{angle}\PYG{p}{,}
+\PYG{+w}{                }\PYG{n}{scale}\PYG{p}{,}
+\PYG{+w}{                }\PYG{n}{opacity}
+\PYG{+w}{            }\PYG{p}{);}
+\PYG{+w}{            }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{death\PYGZus{}timer}\PYG{+w}{ }\PYG{o}{\PYGZhy{}=}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{dt}\PYG{p}{;}
+\PYG{+w}{            }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{death\PYGZus{}timer}\PYG{+w}{ }\PYG{o}{\PYGZlt{}=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{                }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{death\PYGZus{}timer}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{p}{;}
+\PYG{+w}{                }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{state}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{ENTITY\PYGZus{}INACTIVE}\PYG{p}{;}
+\PYG{+w}{                }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{GTK\PYGZus{}IS\PYGZus{}WIDGET}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{widget}\PYG{p}{))}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{                    }\PYG{n}{gtk\PYGZus{}widget\PYGZus{}set\PYGZus{}visible}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{widget}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{FALSE}\PYG{p}{);}
+\PYG{+w}{                }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{            }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{        }\PYG{p}{\PYGZcb{}}\PYG{+w}{ }\PYG{k}{else}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{            }\PYG{n}{snprintf}\PYG{p}{(}\PYG{n}{css}\PYG{p}{,}\PYG{+w}{ }\PYG{k}{sizeof}\PYG{p}{(}\PYG{n}{css}\PYG{p}{),}\PYG{+w}{ }\PYG{l+s}{\PYGZdq{}.\PYGZpc{}s \PYGZob{} transform: rotate(\PYGZpc{}.1fdeg); opacity: 1.0; \PYGZcb{}\PYGZdq{}}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{css\PYGZus{}class}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{angle}\PYG{p}{);}
+\PYG{+w}{        }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{        }\PYG{n}{g\PYGZus{}printerr}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}DEBUG: css len=\PYGZpc{}zu css=\PYGZpc{}s}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{\PYGZdq{}}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{strlen}\PYG{p}{(}\PYG{n}{css}\PYG{p}{),}\PYG{+w}{ }\PYG{n}{css}\PYG{p}{);}
+\PYG{+w}{        }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{GTK\PYGZus{}IS\PYGZus{}CSS\PYGZus{}PROVIDER}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{css\PYGZus{}provider}\PYG{p}{))}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{            }\PYG{n}{gtk\PYGZus{}css\PYGZus{}provider\PYGZus{}load\PYGZus{}from\PYGZus{}string}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{css\PYGZus{}provider}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{css}\PYG{p}{);}
+\PYG{+w}{        }\PYG{p}{\PYGZcb{}}\PYG{+w}{ }\PYG{k}{else}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{            }\PYG{n}{g\PYGZus{}printerr}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}WARN: invalid css\PYGZus{}provider for entity \PYGZpc{}d}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s}{\PYGZdq{}}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{id}\PYG{p}{);}
+\PYG{+w}{        }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+\PYG{p}{\PYGZcb{}}
+\end{MintedVerbatim}

@@ -1,0 +1,57 @@
+% Graphe prédateur/proie : les flèches vont du prédateur vers sa proie.
+\begin{tikzpicture}[
+  node distance = 1.4cm and 1.0cm,
+  fish/.style = {
+    draw, rounded corners, thick,
+    minimum width = 1.6cm, minimum height = 0.7cm,
+    align = center, font = \small
+  },
+  prey/.style    = {fish, fill = green!12},
+  midpred/.style = {fish, fill = yellow!18},
+  apex/.style    = {fish, fill = red!18, very thick},
+  hunt/.style    = {-Stealth, thick}
+]
+
+% Apex
+\node[apex] (shark) at (0, 4) {Shark};
+
+% Prédateurs intermédiaires
+\node[midpred] (barra) at (-4.5, 1.5) {Barracuda};
+\node[midpred] (bass)  at (-1.5, 1.5) {Bass};
+\node[midpred] (trout) at ( 1.5, 1.5) {Trout};
+\node[midpred] (tuna)  at ( 4.5, 1.5) {Tuna};
+
+% Proies
+\node[prey] (gold)  at (-3, -1.2) {Goldfish};
+\node[prey] (clown) at ( 0, -1.2) {Clownfish};
+\node[prey] (angel) at ( 3, -1.2) {Angelfish};
+
+% Shark mange Tuna, Bass, Trout, Angelfish, Goldfish
+\draw[hunt, red!60] (shark) -- (tuna);
+\draw[hunt, red!60] (shark) -- (bass);
+\draw[hunt, red!60] (shark) -- (trout);
+\draw[hunt, red!60] (shark) -- (angel);
+\draw[hunt, red!60] (shark) to[bend right=20] (gold);
+
+% Barracuda et Bass mangent Goldfish + Clownfish
+\draw[hunt] (barra) -- (gold);
+\draw[hunt] (barra) -- (clown);
+\draw[hunt] (bass)  -- (gold);
+\draw[hunt] (bass)  -- (clown);
+
+% Trout mange Goldfish
+\draw[hunt] (trout) -- (gold);
+
+% Tuna mange Goldfish + Clownfish
+\draw[hunt] (tuna) -- (gold);
+\draw[hunt] (tuna) -- (clown);
+
+% Légende
+\matrix [draw, below right=0.6cm and -1.5cm of angel.south,
+         column sep=4pt, row sep=2pt, font=\footnotesize] {
+  \node[apex,    minimum width=0.8cm, minimum height=0.4cm] {}; & \node{Apex}; \\
+  \node[midpred, minimum width=0.8cm, minimum height=0.4cm] {}; & \node{Prédateur intermédiaire}; \\
+  \node[prey,    minimum width=0.8cm, minimum height=0.4cm] {}; & \node{Proie}; \\
+};
+
+\end{tikzpicture}

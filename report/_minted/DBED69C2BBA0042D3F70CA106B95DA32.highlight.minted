@@ -1,0 +1,42 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k}{[global]}
+\PYG{n}{eat\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{10.0}
+\PYG{n}{adrenaline\PYGZus{}boost}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{2.5}
+\PYG{n}{rotation\PYGZus{}smooth}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.1}
+\PYG{n}{death\PYGZus{}flash\PYGZus{}duration}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.22}
+\PYG{n}{starvation\PYGZus{}seconds}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{120.0}
+\PYG{n}{start\PYGZus{}width}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{1280}
+\PYG{n}{start\PYGZus{}height}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{720}
+\PYG{n}{start\PYGZus{}fullscreen}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{k+kc}{false}
+\PYG{n}{tick\PYGZus{}ms}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{16}
+\PYG{n}{assets\PYGZus{}dir}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}assets/\PYGZdq{}}
+
+\PYG{k}{[[species]]}
+\PYG{n}{id}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}goldfish\PYGZdq{}}
+\PYG{n}{name}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}Goldfish\PYGZdq{}}
+\PYG{n}{sprite}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}assets/goldfish.png\PYGZdq{}}
+\PYG{n}{sprite\PYGZus{}width}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{46}
+\PYG{n}{sprite\PYGZus{}height}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{23}
+\PYG{n}{mouth\PYGZus{}forward\PYGZus{}ratio}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.40}
+\PYG{n}{max\PYGZus{}speed}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{85.0}
+\PYG{n}{min\PYGZus{}speed}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{30.0}
+\PYG{n}{max\PYGZus{}force}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{42.0}
+\PYG{n}{separation\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{24.0}
+\PYG{n}{alignment\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{120.0}
+\PYG{n}{cohesion\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{100.0}
+\PYG{n}{separation\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.6}
+\PYG{n}{alignment\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.35}
+\PYG{n}{cohesion\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.45}
+\PYG{n}{fear\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{190.0}
+\PYG{n}{fear\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{2.5}
+\PYG{n}{hunt\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}
+\PYG{n}{hunt\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}
+\PYG{n}{avoid\PYGZus{}same\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}
+\PYG{n}{avoid\PYGZus{}same\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}
+\PYG{n}{prey}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{[]}
+\PYG{n}{lifespan}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{120.0}
+\PYG{n}{flock\PYGZus{}size}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{45}
+\PYG{n}{max\PYGZus{}population}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{60}
+\PYG{n}{respawn\PYGZus{}delay}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.5}
+\PYG{n}{is\PYGZus{}apex}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{k+kc}{false}
+\end{MintedVerbatim}

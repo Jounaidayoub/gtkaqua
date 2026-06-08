@@ -1,0 +1,136 @@
+\chapter{Fichier de configuration complet}
+\label{ann:conf}
+
+Le fichier ci-après est la configuration de référence livrée
+avec le projet. Il fixe les valeurs identiques à celles utilisées
+en interne avant l'introduction du système de configuration
+externe, garantissant ainsi une parfaite compatibilité
+descendante.
+
+\inputminted[fontsize=\scriptsize, frame=lines, linenos, breaklines]{toml}{../aquarium.conf}
+
+\chapter{Instructions de build et d'exécution}
+\label{ann:build}
+
+\section{Dépendances système}
+
+\begin{itemize}
+  \item GCC ou Clang (C11)
+  \item \code{make} (GNU make)
+  \item \code{pkg-config}
+  \item GTK4 et ses headers de développement
+  \item FFmpeg (pour le pipeline d'assets uniquement)
+  \item Bear (optionnel, pour générer \file{compile\_commands.json})
+\end{itemize}
+
+\section{Commandes principales}
+
+\begin{minted}{bash}
+# Préparer les sprites à partir des fichiers bruts (à faire une fois)
+make assets
+
+# Compiler le projet
+make
+
+# Lancer l'aquarium
+./build/bin/aquarium
+
+# Nettoyer les artefacts de build
+make clean
+
+# Installer aquarium.conf dans ~/.config/gtkaqua/
+make install-conf
+\end{minted}
+
+\section{Variables d'environnement utiles}
+
+\code{XDG\_CONFIG\_HOME} contrôle où l'application cherche son
+fichier de configuration utilisateur. Si cette variable n'est
+pas définie, la valeur par défaut
+\file{\textasciitilde/.config/} est utilisée.
+
+\chapter{Arborescence du projet}
+\label{ann:layout}
+
+\begin{verbatim}
+gtkaqua/
+|-- Makefile
+|-- README.md
+|-- aquarium.conf            <- configuration externe
+|-- include/
+|   |-- config.h             <- variables globales extern
+|   |-- conf.h               <- API du loader TOML
+|   |-- entity.h
+|   |-- species.h
+|   |-- vec2.h               <- vecteurs 2D (header-only)
+|   `-- world.h
+|-- src/
+|   |-- conf.c               <- loader TOML + validation
+|   |-- entity.c             <- forces et integration physique
+|   |-- main.c               <- GTK, UI, tick principal
+|   |-- species.c            <- registre dynamique
+|   `-- world.c              <- pool d'entites, orchestration
+|-- vendor/
+|   `-- tomlc99/             <- parseur TOML vendored
+|       |-- toml.c
+|       |-- toml.h
+|       `-- LICENSE
+|-- Fish/                    <- sprites bruts
+|-- assets/                  <- sprites normalises + video de fond
+|-- spritesheets/            <- references non utilisees
+|-- docs/                    <- documentation projet
+`-- build/
+    |-- obj/                 <- fichiers .o
+    `-- bin/aquarium         <- binaire final
+\end{verbatim}
+
+\chapter{Tableau récapitulatif des espèces}
+\label{ann:species-table}
+
+Le tableau~\ref{tab:species-summary} résume les principales
+caractéristiques de chaque espèce telles que définies dans
+\file{aquarium.conf}.
+
+\begin{table}[h!]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrrrrrl@{}}
+\toprule
+\textbf{Espèce} & \textbf{Vit. max} & \textbf{Vit. min} &
+\textbf{Force} & \textbf{Flock} & \textbf{Pop. max} & \textbf{Durée} &
+\textbf{Proies} \\
+\midrule
+Goldfish   & 85  & 30 & 42 & 45 & 60 & 120 & -- \\
+Clownfish  & 90  & 32 & 45 & 18 & 18 & 120 & -- \\
+Angelfish  & 95  & 34 & 44 & 14 & 14 & 150 & -- \\
+Barracuda  & 130 & 40 & 60 & 10 & 10 & 200 & goldfish, clownfish \\
+Bass       & 112 & 36 & 53 & 10 & 10 & 180 & goldfish, clownfish \\
+Trout      & 110 & 36 & 52 & 10 & 10 & 180 & goldfish \\
+Tuna       & 125 & 40 & 56 &  4 &  8 & 200 & goldfish, clownfish \\
+Shark      & 145 & 44 & 62 &  2 &  8 & 300 & tuna, bass, trout, angelfish, goldfish \\
+\bottomrule
+\end{tabular}
+\caption{Récapitulatif des huit espèces par défaut.}
+\label{tab:species-summary}
+\end{table}
+
+Les vitesses sont exprimées en pixels par seconde, la force
+maximale en pixels par seconde au carré (accélération), et la
+durée de vie en secondes.
+
+\chapter{Définition de la structure \struct{SpeciesConfig}}
+\label{ann:species-struct}
+
+Pour référence, voici la définition complète du type qui porte
+l'intégralité du paramétrage d'une espèce, telle qu'elle figure
+dans \file{include/species.h}~:
+
+\inputminted[fontsize=\footnotesize, frame=lines, linenos]{c}{../include/species.h}
+
+\chapter{Signature de l'API de configuration}
+\label{ann:conf-api}
+
+L'interface publique exposée par le module de configuration~:
+
+\inputminted[fontsize=\footnotesize, frame=lines, linenos]{c}{../include/conf.h}

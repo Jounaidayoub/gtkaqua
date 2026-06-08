@@ -1,0 +1,3 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{n+nv}{CFLAGS}\PYG{+w}{ }\PYG{o}{?=}\PYG{+w}{ }\PYGZhy{}std\PYG{o}{=}c11\PYG{+w}{ }\PYGZhy{}O2\PYG{+w}{ }\PYGZhy{}Wall\PYG{+w}{ }\PYGZhy{}Wextra\PYG{+w}{ }\PYGZhy{}Wpedantic
+\end{MintedVerbatim}

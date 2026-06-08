@@ -1,0 +1,6 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{diff}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{target\PYGZus{}deg}\PYG{+w}{ }\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{angle}\PYG{p}{;}
+\PYG{k}{while}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{diff}\PYG{+w}{ }\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{l+m+mf}{180.0}\PYG{p}{)}\PYG{+w}{  }\PYG{n}{diff}\PYG{+w}{ }\PYG{o}{\PYGZhy{}=}\PYG{+w}{ }\PYG{l+m+mf}{360.0}\PYG{p}{;}
+\PYG{k}{while}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{diff}\PYG{+w}{ }\PYG{o}{\PYGZlt{}}\PYG{+w}{ }\PYG{l+m+mf}{\PYGZhy{}180.0}\PYG{p}{)}\PYG{+w}{ }\PYG{n}{diff}\PYG{+w}{ }\PYG{o}{+=}\PYG{+w}{ }\PYG{l+m+mf}{360.0}\PYG{p}{;}
+\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{angle}\PYG{+w}{ }\PYG{o}{+=}\PYG{+w}{ }\PYG{n}{diff}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{g\PYGZus{}rotation\PYGZus{}smooth}\PYG{p}{;}
+\end{MintedVerbatim}

@@ -1,0 +1,261 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZsh{} GTK Aquarium Configuration}
+\PYG{c+c1}{\PYGZsh{} Edit this file to tune the simulation, add/remove species, or change behavior.}
+\PYG{c+c1}{\PYGZsh{} Lines starting with \PYGZsh{} are comments.}
+\PYG{c+c1}{\PYGZsh{}}
+\PYG{c+c1}{\PYGZsh{} After editing, restart the aquarium for changes to take effect.}
+\PYG{c+c1}{\PYGZsh{} If you see an error on launch, check the terminal output.}
+
+\PYG{k}{[global]}
+\PYG{n}{eat\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{10.0}
+\PYG{n}{adrenaline\PYGZus{}boost}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{2.5}
+\PYG{n}{rotation\PYGZus{}smooth}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.1}
+\PYG{n}{death\PYGZus{}flash\PYGZus{}duration}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.22}
+\PYG{n}{starvation\PYGZus{}seconds}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{120.0}
+\PYG{n}{start\PYGZus{}width}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{1280}
+\PYG{n}{start\PYGZus{}height}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{720}
+\PYG{n}{start\PYGZus{}fullscreen}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{k+kc}{false}
+\PYG{n}{tick\PYGZus{}ms}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{16}
+\PYG{n}{assets\PYGZus{}dir}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}assets/\PYGZdq{}}
+
+\PYG{c+c1}{\PYGZsh{} \PYGZhy{}\PYGZhy{}\PYGZhy{} Species \PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}}
+\PYG{c+c1}{\PYGZsh{} Each entry under [[species]] defines one type of fish.}
+\PYG{c+c1}{\PYGZsh{} To remove a fish, delete (or comment out) its entire [[species]] block.}
+\PYG{c+c1}{\PYGZsh{} To add a new fish, copy an existing block, change the id, name, sprite path,}
+\PYG{c+c1}{\PYGZsh{} and tune the values below.}
+\PYG{c+c1}{\PYGZsh{}}
+\PYG{c+c1}{\PYGZsh{} prey = [ \PYGZdq{}id1\PYGZdq{}, \PYGZdq{}id2\PYGZdq{}, ... ]   ← list of species this fish hunts (by id)}
+\PYG{c+c1}{\PYGZsh{} is\PYGZus{}apex = true/false           ← apex predators show a special label in the UI}
+
+\PYG{k}{[[species]]}
+\PYG{n}{id}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}goldfish\PYGZdq{}}
+\PYG{n}{name}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}Goldfish\PYGZdq{}}
+\PYG{n}{sprite}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}assets/goldfish.png\PYGZdq{}}
+\PYG{n}{sprite\PYGZus{}width}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{46}
+\PYG{n}{sprite\PYGZus{}height}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{23}
+\PYG{n}{mouth\PYGZus{}forward\PYGZus{}ratio}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.40}
+\PYG{n}{max\PYGZus{}speed}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{85.0}
+\PYG{n}{min\PYGZus{}speed}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{30.0}
+\PYG{n}{max\PYGZus{}force}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{42.0}
+\PYG{n}{separation\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{24.0}
+\PYG{n}{alignment\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{120.0}
+\PYG{n}{cohesion\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{100.0}
+\PYG{n}{separation\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.6}
+\PYG{n}{alignment\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.35}
+\PYG{n}{cohesion\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.45}
+\PYG{n}{fear\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{190.0}
+\PYG{n}{fear\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{2.5}
+\PYG{n}{hunt\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}
+\PYG{n}{hunt\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}
+\PYG{n}{avoid\PYGZus{}same\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}
+\PYG{n}{avoid\PYGZus{}same\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}
+\PYG{n}{prey}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{[]}
+\PYG{n}{lifespan}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{120.0}
+\PYG{n}{flock\PYGZus{}size}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{45}
+\PYG{n}{max\PYGZus{}population}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{60}
+\PYG{n}{respawn\PYGZus{}delay}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.5}
+\PYG{n}{is\PYGZus{}apex}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{k+kc}{false}
+
+\PYG{k}{[[species]]}
+\PYG{n}{id}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}clownfish\PYGZdq{}}
+\PYG{n}{name}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}Clownfish\PYGZdq{}}
+\PYG{n}{sprite}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}assets/clownfish.png\PYGZdq{}}
+\PYG{n}{sprite\PYGZus{}width}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{72}
+\PYG{n}{sprite\PYGZus{}height}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{42}
+\PYG{n}{mouth\PYGZus{}forward\PYGZus{}ratio}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.40}
+\PYG{n}{max\PYGZus{}speed}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{90.0}
+\PYG{n}{min\PYGZus{}speed}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{32.0}
+\PYG{n}{max\PYGZus{}force}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{45.0}
+\PYG{n}{separation\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{34.0}
+\PYG{n}{alignment\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{115.0}
+\PYG{n}{cohesion\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{125.0}
+\PYG{n}{separation\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.7}
+\PYG{n}{alignment\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.35}
+\PYG{n}{cohesion\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.45}
+\PYG{n}{fear\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{195.0}
+\PYG{n}{fear\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{2.6}
+\PYG{n}{hunt\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}
+\PYG{n}{hunt\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}
+\PYG{n}{avoid\PYGZus{}same\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}
+\PYG{n}{avoid\PYGZus{}same\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}
+\PYG{n}{prey}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{[]}
+\PYG{n}{lifespan}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{120.0}
+\PYG{n}{flock\PYGZus{}size}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{10}
+\PYG{n}{max\PYGZus{}population}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{18}
+\PYG{n}{respawn\PYGZus{}delay}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.5}
+\PYG{n}{is\PYGZus{}apex}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{k+kc}{false}
+
+\PYG{k}{[[species]]}
+\PYG{n}{id}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}angelfish\PYGZdq{}}
+\PYG{n}{name}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}Angelfish\PYGZdq{}}
+\PYG{n}{sprite}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}assets/angelfish.png\PYGZdq{}}
+\PYG{n}{sprite\PYGZus{}width}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{78}
+\PYG{n}{sprite\PYGZus{}height}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{74}
+\PYG{n}{mouth\PYGZus{}forward\PYGZus{}ratio}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.40}
+\PYG{n}{max\PYGZus{}speed}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{95.0}
+\PYG{n}{min\PYGZus{}speed}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{34.0}
+\PYG{n}{max\PYGZus{}force}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{44.0}
+\PYG{n}{separation\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{38.0}
+\PYG{n}{alignment\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{130.0}
+\PYG{n}{cohesion\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{142.0}
+\PYG{n}{separation\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.5}
+\PYG{n}{alignment\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.25}
+\PYG{n}{cohesion\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.3}
+\PYG{n}{fear\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{210.0}
+\PYG{n}{fear\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{2.5}
+\PYG{n}{hunt\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}
+\PYG{n}{hunt\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}
+\PYG{n}{avoid\PYGZus{}same\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}
+\PYG{n}{avoid\PYGZus{}same\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}
+\PYG{n}{prey}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{[]}
+\PYG{n}{lifespan}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{150.0}
+\PYG{n}{flock\PYGZus{}size}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{14}
+\PYG{n}{max\PYGZus{}population}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{14}
+\PYG{n}{respawn\PYGZus{}delay}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{2.0}
+\PYG{n}{is\PYGZus{}apex}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{k+kc}{false}
+
+\PYG{k}{[[species]]}
+\PYG{n}{id}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}barracuda\PYGZdq{}}
+\PYG{n}{name}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}Barracuda\PYGZdq{}}
+\PYG{n}{sprite}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}assets/barracuda.png\PYGZdq{}}
+\PYG{n}{sprite\PYGZus{}width}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{96}
+\PYG{n}{sprite\PYGZus{}height}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{38}
+\PYG{n}{mouth\PYGZus{}forward\PYGZus{}ratio}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.42}
+\PYG{n}{max\PYGZus{}speed}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{130.0}
+\PYG{n}{min\PYGZus{}speed}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{40.0}
+\PYG{n}{max\PYGZus{}force}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{60.0}
+\PYG{n}{separation\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{56.0}
+\PYG{n}{alignment\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{100.0}
+\PYG{n}{cohesion\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{112.0}
+\PYG{n}{separation\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.3}
+\PYG{n}{alignment\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.8}
+\PYG{n}{cohesion\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.6}
+\PYG{n}{fear\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{230.0}
+\PYG{n}{fear\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.5}
+\PYG{n}{hunt\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{300.0}
+\PYG{n}{hunt\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{2.7}
+\PYG{n}{avoid\PYGZus{}same\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{90.0}
+\PYG{n}{avoid\PYGZus{}same\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.8}
+\PYG{n}{prey}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{[}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}goldfish\PYGZdq{}}\PYG{p}{,}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}clownfish\PYGZdq{}}\PYG{+w}{ }\PYG{p}{]}
+\PYG{n}{lifespan}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{200.0}
+\PYG{n}{flock\PYGZus{}size}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{10}
+\PYG{n}{max\PYGZus{}population}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{10}
+\PYG{n}{respawn\PYGZus{}delay}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{4.0}
+\PYG{n}{is\PYGZus{}apex}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{k+kc}{false}
+
+\PYG{k}{[[species]]}
+\PYG{n}{id}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}bass\PYGZdq{}}
+\PYG{n}{name}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}Bass\PYGZdq{}}
+\PYG{n}{sprite}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}assets/bass.png\PYGZdq{}}
+\PYG{n}{sprite\PYGZus{}width}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{84}
+\PYG{n}{sprite\PYGZus{}height}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{52}
+\PYG{n}{mouth\PYGZus{}forward\PYGZus{}ratio}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.42}
+\PYG{n}{max\PYGZus{}speed}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{112.0}
+\PYG{n}{min\PYGZus{}speed}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{36.0}
+\PYG{n}{max\PYGZus{}force}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{53.0}
+\PYG{n}{separation\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{48.0}
+\PYG{n}{alignment\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{96.0}
+\PYG{n}{cohesion\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{108.0}
+\PYG{n}{separation\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.4}
+\PYG{n}{alignment\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.8}
+\PYG{n}{cohesion\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.7}
+\PYG{n}{fear\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{245.0}
+\PYG{n}{fear\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.7}
+\PYG{n}{hunt\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{290.0}
+\PYG{n}{hunt\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{2.4}
+\PYG{n}{avoid\PYGZus{}same\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{80.0}
+\PYG{n}{avoid\PYGZus{}same\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.7}
+\PYG{n}{prey}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{[}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}goldfish\PYGZdq{}}\PYG{p}{,}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}clownfish\PYGZdq{}}\PYG{+w}{ }\PYG{p}{]}
+\PYG{n}{lifespan}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{180.0}
+\PYG{n}{flock\PYGZus{}size}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{10}
+\PYG{n}{max\PYGZus{}population}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{10}
+\PYG{n}{respawn\PYGZus{}delay}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{4.5}
+\PYG{n}{is\PYGZus{}apex}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{k+kc}{false}
+
+\PYG{k}{[[species]]}
+\PYG{n}{id}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}trout\PYGZdq{}}
+\PYG{n}{name}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}Trout\PYGZdq{}}
+\PYG{n}{sprite}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}assets/trout.png\PYGZdq{}}
+\PYG{n}{sprite\PYGZus{}width}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{84}
+\PYG{n}{sprite\PYGZus{}height}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{48}
+\PYG{n}{mouth\PYGZus{}forward\PYGZus{}ratio}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.42}
+\PYG{n}{max\PYGZus{}speed}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{110.0}
+\PYG{n}{min\PYGZus{}speed}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{36.0}
+\PYG{n}{max\PYGZus{}force}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{52.0}
+\PYG{n}{separation\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{44.0}
+\PYG{n}{alignment\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{94.0}
+\PYG{n}{cohesion\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{106.0}
+\PYG{n}{separation\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.4}
+\PYG{n}{alignment\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.9}
+\PYG{n}{cohesion\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.7}
+\PYG{n}{fear\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{240.0}
+\PYG{n}{fear\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.8}
+\PYG{n}{hunt\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{270.0}
+\PYG{n}{hunt\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{2.25}
+\PYG{n}{avoid\PYGZus{}same\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{75.0}
+\PYG{n}{avoid\PYGZus{}same\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.7}
+\PYG{n}{prey}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{[}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}goldfish\PYGZdq{}}\PYG{+w}{ }\PYG{p}{]}
+\PYG{n}{lifespan}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{180.0}
+\PYG{n}{flock\PYGZus{}size}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{10}
+\PYG{n}{max\PYGZus{}population}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{10}
+\PYG{n}{respawn\PYGZus{}delay}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{4.5}
+\PYG{n}{is\PYGZus{}apex}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{k+kc}{false}
+
+\PYG{k}{[[species]]}
+\PYG{n}{id}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}tuna\PYGZdq{}}
+\PYG{n}{name}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}Tuna\PYGZdq{}}
+\PYG{n}{sprite}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}assets/tuna.png\PYGZdq{}}
+\PYG{n}{sprite\PYGZus{}width}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{90}
+\PYG{n}{sprite\PYGZus{}height}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{54}
+\PYG{n}{mouth\PYGZus{}forward\PYGZus{}ratio}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.42}
+\PYG{n}{max\PYGZus{}speed}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{125.0}
+\PYG{n}{min\PYGZus{}speed}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{40.0}
+\PYG{n}{max\PYGZus{}force}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{56.0}
+\PYG{n}{separation\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{52.0}
+\PYG{n}{alignment\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{100.0}
+\PYG{n}{cohesion\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{114.0}
+\PYG{n}{separation\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.3}
+\PYG{n}{alignment\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.8}
+\PYG{n}{cohesion\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.6}
+\PYG{n}{fear\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{250.0}
+\PYG{n}{fear\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.7}
+\PYG{n}{hunt\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{320.0}
+\PYG{n}{hunt\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{2.5}
+\PYG{n}{avoid\PYGZus{}same\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{85.0}
+\PYG{n}{avoid\PYGZus{}same\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.8}
+\PYG{n}{prey}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{[}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}goldfish\PYGZdq{}}\PYG{p}{,}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}clownfish\PYGZdq{}}\PYG{+w}{ }\PYG{p}{]}
+\PYG{n}{lifespan}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{200.0}
+\PYG{n}{flock\PYGZus{}size}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{4}
+\PYG{n}{max\PYGZus{}population}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{8}
+\PYG{n}{respawn\PYGZus{}delay}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{5.0}
+\PYG{n}{is\PYGZus{}apex}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{k+kc}{false}
+
+\PYG{k}{[[species]]}
+\PYG{n}{id}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}shark\PYGZdq{}}
+\PYG{n}{name}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}Shark\PYGZdq{}}
+\PYG{n}{sprite}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}assets/shark.png\PYGZdq{}}
+\PYG{n}{sprite\PYGZus{}width}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{190}
+\PYG{n}{sprite\PYGZus{}height}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{96}
+\PYG{n}{mouth\PYGZus{}forward\PYGZus{}ratio}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.43}
+\PYG{n}{max\PYGZus{}speed}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{145.0}
+\PYG{n}{min\PYGZus{}speed}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{44.0}
+\PYG{n}{max\PYGZus{}force}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{62.0}
+\PYG{n}{separation\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{76.0}
+\PYG{n}{alignment\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{130.0}
+\PYG{n}{cohesion\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{140.0}
+\PYG{n}{separation\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.1}
+\PYG{n}{alignment\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.6}
+\PYG{n}{cohesion\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.4}
+\PYG{n}{fear\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}
+\PYG{n}{fear\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}
+\PYG{n}{hunt\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{430.0}
+\PYG{n}{hunt\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{3.2}
+\PYG{n}{avoid\PYGZus{}same\PYGZus{}radius}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{220.0}
+\PYG{n}{avoid\PYGZus{}same\PYGZus{}weight}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{3.4}
+\PYG{n}{prey}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{[}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}tuna\PYGZdq{}}\PYG{p}{,}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}bass\PYGZdq{}}\PYG{p}{,}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}trout\PYGZdq{}}\PYG{p}{,}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}angelfish\PYGZdq{}}\PYG{p}{,}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}goldfish\PYGZdq{}}\PYG{+w}{ }\PYG{p}{]}
+\PYG{n}{lifespan}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{300.0}
+\PYG{n}{flock\PYGZus{}size}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{2}
+\PYG{n}{max\PYGZus{}population}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{8}
+\PYG{n}{respawn\PYGZus{}delay}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{6.0}
+\PYG{n}{is\PYGZus{}apex}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{k+kc}{true}
+\end{MintedVerbatim}

@@ -1,0 +1,6 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{n+nf}{ffmpeg \PYGZhy{}i \PYGZdl{}(FISH\PYGZus{}DIR)/shark.webp \PYGZhy{}vf \PYGZdq{}scale=100}\PYG{o}{:}\PYGZhy{}1\PYGZdq{} \PYGZbs{}
+        \PYGZhy{}\PYG{n}{frames}:\PYG{n}{v} 1 \PYGZhy{}\PYG{n}{y} \PYG{k}{\PYGZdl{}(}\PYG{n+nv}{ASSET\PYGZus{}DIR}\PYG{k}{)}/\PYG{n}{shark}.\PYG{n}{png}
+\PYG{err}{ffmpeg}\PYG{+w}{ }\PYG{err}{\PYGZhy{}i}\PYG{+w}{ }\PYG{k}{\PYGZdl{}(}\PYG{n+nv}{FISH\PYGZus{}DIR}\PYG{k}{)}\PYG{err}{/fish1Texture.png}\PYG{+w}{ }\PYG{err}{\PYGZhy{}vf}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}hflip\PYGZdq{}}\PYG{+w}{ }\PYG{err}{\PYGZbs{}}
+\PYG{+w}{        }\PYG{n+nf}{\PYGZhy{}frames}\PYG{o}{:}\PYG{n}{v} 1 \PYGZhy{}\PYG{n}{y} \PYG{k}{\PYGZdl{}(}\PYG{n+nv}{ASSET\PYGZus{}DIR}\PYG{k}{)}/\PYG{n}{goldfish}.\PYG{n}{png}
+\end{MintedVerbatim}

@@ -1,0 +1,139 @@
+% =========================================================================
+% Préambule du mémoire
+% =========================================================================
+
+% --- Encodage et langue ---------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+
+% --- Mise en page ---------------------------------------------------------
+\usepackage[a4paper, margin=2.5cm]{geometry}
+\usepackage{microtype}
+\usepackage{setspace}
+\onehalfspacing
+
+% --- Couleurs et liens ----------------------------------------------------
+\usepackage{xcolor}
+\definecolor{linkcolor}{RGB}{20, 60, 120}
+\definecolor{codebg}{RGB}{248, 248, 248}
+\definecolor{codeframe}{RGB}{200, 200, 200}
+
+\usepackage[
+  colorlinks=true,
+  linkcolor=linkcolor,
+  citecolor=linkcolor,
+  urlcolor=linkcolor,
+  pdftitle={Simulation comportementale d'un aquarium en C/GTK4 avec configuration externe},
+  pdfauthor={Yahya},
+  pdfsubject={Projet PFA},
+  bookmarksopen=true,
+  bookmarksnumbered=true
+]{hyperref}
+
+% --- Graphiques et tableaux -----------------------------------------------
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{float}
+
+% --- Mathématiques --------------------------------------------------------
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% --- TikZ -----------------------------------------------------------------
+\usepackage{tikz}
+\usetikzlibrary{
+  arrows.meta,
+  positioning,
+  shapes,
+  shapes.geometric,
+  automata,
+  calc,
+  fit,
+  decorations.pathreplacing,
+  backgrounds
+}
+
+% --- Code source via minted ------------------------------------------------
+\usepackage[newfloat]{minted}
+\setminted{
+  fontsize=\footnotesize,
+  linenos,
+  numbersep=8pt,
+  frame=lines,
+  framesep=2mm,
+  breaklines,
+  breakanywhere=false,
+  bgcolor=codebg,
+  tabsize=4
+}
+
+% Style par défaut pour le C
+\setminted[c]{style=friendly}
+\setminted[toml]{style=friendly}
+\setminted[bash]{style=friendly}
+\setminted[make]{style=friendly}
+
+% Liste flottante pour les codes (« Liste des codes »).
+% Avec l'option [newfloat], minted utilise le package newfloat qui
+% n'expose pas \listingscaption ni \listoflistingscaption : on les
+% renomme via caption et on redéfinit la macro pour la liste.
+\captionsetup[listing]{position=above, name=Listing}
+\providecommand{\listoflistingscaption}{Liste des codes}
+\renewcommand{\listoflistingscaption}{Liste des codes}
+\providecommand{\listoflistings}{\listof{listing}{\listoflistingscaption}}
+
+% csquotes doit être chargé après fvextra (chargé par minted) pour éviter
+% un warning de lineno.
+\usepackage{csquotes}
+
+% --- Bibliographie (BibTeX classique, style plain) -----------------------
+% biblatex n'est pas disponible sur cette installation : on utilise
+% le système traditionnel \bibliography{...} + \bibliographystyle{...}.
+
+% --- Numérotation des pages -----------------------------------------------
+% Numérotation arabe (1, 2, 3, ...) sur tout le document.
+\pagenumbering{arabic}
+
+% --- Profondeur de la table des matières ----------------------------------
+\setcounter{tocdepth}{2}
+\setcounter{secnumdepth}{3}
+
+% --- Commandes personnalisées ---------------------------------------------
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\file}[1]{\texttt{#1}}
+\newcommand{\struct}[1]{\texttt{#1}}
+\newcommand{\func}[1]{\texttt{#1()}}
+\newcommand{\kw}[1]{\textbf{\texttt{#1}}}
+
+% Mise en avant d'un terme défini
+\newcommand{\term}[1]{\emph{#1}}
+
+% --- En-têtes et pieds de page --------------------------------------------
+\usepackage{fancyhdr}
+\setlength{\headheight}{14pt}
+\addtolength{\topmargin}{-2pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\leftmark}
+\fancyhead[R]{\thepage}
+\fancyfoot[C]{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Empêche le mode "lettre majuscule partout" dans \leftmark
+\renewcommand{\chaptermark}[1]{\markboth{\chaptername\ \thechapter\ -- #1}{}}
+
+% --- Espacement avant les chapitres ---------------------------------------
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries}
+  {\chaptertitlename\ \thechapter}
+  {20pt}
+  {\Huge}
+\titlespacing*{\chapter}{0pt}{-30pt}{20pt}

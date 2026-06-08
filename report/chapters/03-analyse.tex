@@ -1,0 +1,210 @@
+\chapter{Analyse et spécifications}
+\label{chap:analyse}
+
+\section{Périmètre}
+
+L'application cible est un \emph{screensaver} interactif présentant
+un aquarium peuplé de plusieurs espèces de poissons. Elle s'exécute
+sur un poste Linux avec un environnement graphique compatible GTK4.
+Elle est mono-utilisateur, mono-fenêtre, et n'a pas de persistance~:
+chaque démarrage recharge la configuration depuis le disque et
+réinitialise la simulation.
+
+\section{Exigences fonctionnelles}
+
+Les exigences fonctionnelles, numérotées EF1..EF12, décrivent ce
+que le système doit faire.
+
+\begin{description}[leftmargin=3em, style=nextline]
+  \item[EF1 -- Simulation de banc.] L'application doit simuler le
+    comportement de banc d'au moins sept espèces de poissons
+    distinctes, en appliquant à chacune les trois forces de
+    Reynolds (séparation, alignement, cohésion) avec des
+    paramètres propres.
+
+  \item[EF2 -- Prédateur/proie.] Certaines espèces sont des
+    prédateurs et chassent d'autres espèces désignées comme leurs
+    proies. La consommation d'une proie est effective lorsque la
+    \emph{bouche} du prédateur entre en collision avec le centre
+    de la proie.
+
+  \item[EF3 -- Fuite des proies.] Toute proie qui détecte un
+    prédateur dans son rayon de peur (\code{fear\_radius}) doit
+    s'enfuir en sens opposé, avec un \emph{boost} de vitesse
+    d'adrénaline.
+
+  \item[EF4 -- Cycle de vie.] Une entité passe par les états
+    \code{ALIVE}, \code{DYING} (transition visuelle de
+    $\sim$~0.22~seconde) puis \code{INACTIVE} (invisible,
+    en attente). Une entité \code{INACTIVE} peut être réactivée
+    au-delà du délai \code{respawn\_delay}.
+
+  \item[EF5 -- Famine.] Un prédateur qui n'a rien mangé depuis
+    \code{STARVATION\_SECONDS} secondes meurt de faim.
+
+  \item[EF6 -- Configuration externe.] L'intégralité des
+    paramètres (constantes globales et tableau des espèces) est
+    lue au démarrage depuis un fichier TOML
+    \file{aquarium.conf}.
+
+  \item[EF7 -- Recherche multi-niveaux.] Le fichier de
+    configuration est cherché successivement dans le répertoire
+    courant, puis dans \file{\textasciitilde/.config/gtkaqua/},
+    puis dans \file{/etc/gtkaqua/}.
+
+  \item[EF8 -- Ajout/suppression d'espèces.] Ajouter une espèce
+    consiste à ajouter un bloc \code{[[species]]} au fichier de
+    configuration et à fournir le sprite correspondant dans le
+    répertoire \file{assets/}, sans modifier le code C ni
+    recompiler.
+
+  \item[EF9 -- Validation.] Le chargement doit échouer proprement
+    en cas d'erreur de syntaxe TOML, d'identifiant manquant, ou
+    de référence \code{prey} pointant vers une espèce inexistante,
+    en affichant un message lisible.
+
+  \item[EF10 -- Rechargement à chaud.] Un bouton \emph{Reload
+    config} dans l'interface relit le fichier de configuration et
+    relance la simulation avec les nouveaux paramètres, sans
+    redémarrer l'application.
+
+  \item[EF11 -- Contrôles utilisateur.] L'interface latérale
+    fournit~: une case à cocher par espèce pour décider qui peuple
+    le \emph{pool} initial, un sélecteur d'espèce et un compteur
+    pour ajouter/retirer un nombre précis de poissons à chaud, un
+    bouton pause, un curseur de vitesse globale, un bouton
+    \emph{Initialize pool}, le bouton \emph{Reload config}.
+
+  \item[EF12 -- Plein écran.] La touche \kw{F11} bascule en mode
+    plein écran. La touche \kw{Échap} quitte le plein écran.
+\end{description}
+
+\section{Exigences non fonctionnelles}
+
+\begin{description}[leftmargin=3em, style=nextline]
+  \item[ENF1 -- Performance.] La simulation doit tenir 60~Hz avec
+    au moins 100 entités sur un poste de bureau moderne (CPU
+    quad-core, GPU intégré).
+
+  \item[ENF2 -- Portabilité.] Cible Linux x86\_64 avec GTK4 et
+    GLib installés. Pas d'objectif de portage Windows ou macOS.
+
+  \item[ENF3 -- Lisibilité de la configuration.] Le fichier
+    \file{aquarium.conf} doit être éditable par un utilisateur
+    qui n'est pas développeur~: noms de paramètres explicites,
+    commentaires de section, valeurs typées (entiers, flottants,
+    listes de chaînes), pas de syntaxe spécifique au langage~C.
+
+  \item[ENF4 -- Robustesse mémoire.] Pas de fuite de mémoire en
+    régime stationnaire. Les widgets GTK des entités
+    \code{INACTIVE} sont conservés et masqués plutôt que détruits
+    et recréés, pour éviter la fragmentation et les coûts
+    d'allocation répétés.
+
+  \item[ENF5 -- Modularité.] Chaque module C correspond à un
+    couple \file{.h}/\file{.c} clairement délimité, et expose
+    une API minimale. La taille moyenne d'un module reste
+    raisonnable (quelques centaines de lignes).
+
+  \item[ENF6 -- Reproductibilité du build.] La compilation se
+    fait par \code{make} sans télécharger de dépendances
+    réseau au moment du build. Le seul \emph{vendor} embarqué
+    est la bibliothèque \code{tomlc99}, copiée dans
+    \file{vendor/tomlc99/}.
+
+  \item[ENF7 -- Diagnostic.] En cas d'erreur de chargement de
+    configuration, un message clair indique le chemin essayé et
+    la cause (clé manquante, identifiant de proie inconnu, etc.).
+\end{description}
+
+\section{Cas d'utilisation}
+
+Cinq cas d'utilisation principaux structurent l'interaction avec
+l'application. Ils sont représentés graphiquement dans la
+figure~\ref{fig:usecases}.
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{UC1 -- Lancer la simulation.} L'utilisateur
+    démarre l'application. Le programme lit
+    \file{aquarium.conf}, instancie les espèces, peuple le
+    \emph{pool} initial selon \code{flock\_size} de chaque
+    espèce, démarre la boucle de simulation.
+
+  \item \textbf{UC2 -- Mettre en pause.} L'utilisateur clique sur
+    \emph{Pause}. Le tick continue d'être appelé mais
+    \code{world\_tick} n'est plus exécuté.
+
+  \item \textbf{UC3 -- Modifier l'écosystème via configuration.}
+    L'utilisateur édite \file{aquarium.conf} (modification d'un
+    paramètre, ajout/suppression d'un bloc \code{[[species]]}),
+    enregistre, puis clique sur \emph{Reload config} ou redémarre
+    l'application.
+
+  \item \textbf{UC4 -- Ajouter/retirer des poissons à chaud.}
+    L'utilisateur sélectionne une espèce dans la combobox,
+    saisit un nombre, et clique sur \emph{+~Add} ou
+    \emph{-~Remove}.
+
+  \item \textbf{UC5 -- Recharger la configuration.} L'utilisateur
+    clique sur \emph{Reload config}. Le système relit le fichier,
+    valide, et relance la simulation. En cas d'erreur, une boîte
+    de dialogue s'affiche.
+\end{itemize}
+
+\begin{figure}[h!]
+\centering
+\begin{tikzpicture}[
+  actor/.style = {draw, thick, circle, minimum size=0.7cm, label=below:{\small Utilisateur}},
+  ucase/.style = {draw, thick, ellipse, minimum width=3.6cm, minimum height=1cm, align=center, font=\small},
+  sysbox/.style = {draw, thick, rounded corners, inner sep=0.6cm, label=above:{\small \textbf{Aquarium GTK}}}
+]
+
+\node[actor] (user) at (0,-2.5) {};
+
+\node[ucase] (uc1) at (5, 0)    {UC1 : Lancer\\la simulation};
+\node[ucase] (uc2) at (5, -1.5) {UC2 : Mettre\\en pause};
+\node[ucase] (uc3) at (5, -3)   {UC3 : Modifier\\la configuration};
+\node[ucase] (uc4) at (5, -4.5) {UC4 : Ajouter/retirer\\des poissons};
+\node[ucase] (uc5) at (5, -6)   {UC5 : Recharger\\la configuration};
+
+\node[sysbox, fit=(uc1)(uc2)(uc3)(uc4)(uc5)] {};
+
+\foreach \uc in {uc1, uc2, uc3, uc4, uc5} {
+  \draw[thick] (user) -- (\uc);
+}
+
+\end{tikzpicture}
+\caption{Diagramme de cas d'utilisation.}
+\label{fig:usecases}
+\end{figure}
+
+\section{Glossaire}
+
+\begin{description}[leftmargin=3em, style=nextline]
+  \item[Boid.] Agent autonome dans le modèle de Reynolds. Dans
+    notre projet, un boid est une instance de \struct{Entity}.
+
+  \item[Flocking.] Comportement de banc émergeant de
+    l'application des trois règles de Reynolds.
+
+  \item[Mouth-based eating.] Approche d'alimentation où la
+    collision est calculée entre la \emph{bouche} du prédateur
+    (point décalé vers l'avant du sprite, à
+    \code{mouth\_forward\_ratio}~$\times$~\code{sprite\_width}) et
+    la position centrale de la proie. Plus réaliste qu'une
+    collision centre-à-centre.
+
+  \item[Lifespan.] Durée de vie maximale d'une entité, exprimée
+    en secondes. Atteinte la durée, l'entité passe à
+    \code{DYING}.
+
+  \item[Respawn.] Réactivation d'une entité \code{INACTIVE} après
+    expiration de \code{respawn\_delay} et tant que la population
+    vivante de l'espèce est inférieure à \code{flock\_size}.
+
+  \item[Pool.] Ensemble des espèces effectivement peuplées au
+    démarrage, déterminé par les cases à cocher de l'interface.
+
+  \item[Pred mask.] Bitmask 32~bits où le bit~$i$ indique que
+    l'espèce d'index~$i$ est une proie de l'espèce courante.
+\end{description}

@@ -1,0 +1,48 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+cp}{\PYGZsh{}ifndef SPECIES\PYGZus{}H}
+\PYG{c+cp}{\PYGZsh{}define SPECIES\PYGZus{}H}
+
+\PYG{c+cp}{\PYGZsh{}include}\PYG{+w}{ }\PYG{c+cpf}{\PYGZlt{}stdbool.h\PYGZgt{}}
+
+\PYG{c+cp}{\PYGZsh{}define MAX\PYGZus{}SPECIES 32}
+
+\PYG{k}{typedef}\PYG{+w}{ }\PYG{k}{struct}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{k+kt}{char}\PYG{+w}{ }\PYG{n}{id}\PYG{p}{[}\PYG{l+m+mi}{64}\PYG{p}{];}
+\PYG{+w}{    }\PYG{k+kt}{char}\PYG{+w}{ }\PYG{n}{name}\PYG{p}{[}\PYG{l+m+mi}{64}\PYG{p}{];}
+\PYG{+w}{    }\PYG{k+kt}{char}\PYG{+w}{ }\PYG{n}{asset\PYGZus{}path}\PYG{p}{[}\PYG{l+m+mi}{256}\PYG{p}{];}
+\PYG{+w}{    }\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{sprite\PYGZus{}width}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{sprite\PYGZus{}height}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{mouth\PYGZus{}forward\PYGZus{}ratio}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{max\PYGZus{}speed}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{min\PYGZus{}speed}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{max\PYGZus{}force}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{separation\PYGZus{}radius}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{alignment\PYGZus{}radius}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{cohesion\PYGZus{}radius}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{separation\PYGZus{}weight}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{alignment\PYGZus{}weight}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{cohesion\PYGZus{}weight}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{fear\PYGZus{}radius}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{fear\PYGZus{}weight}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{hunt\PYGZus{}radius}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{hunt\PYGZus{}weight}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{avoid\PYGZus{}same\PYGZus{}radius}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{avoid\PYGZus{}same\PYGZus{}weight}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{prey\PYGZus{}mask}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{lifespan}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{flock\PYGZus{}size}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{max\PYGZus{}population}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{respawn\PYGZus{}delay}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{bool}\PYG{+w}{ }\PYG{n}{is\PYGZus{}apex}\PYG{p}{;}
+\PYG{p}{\PYGZcb{}}\PYG{+w}{ }\PYG{n}{SpeciesConfig}\PYG{p}{;}
+
+\PYG{c+cp}{\PYGZsh{}define EATS(predator\PYGZus{}cfg, prey\PYGZus{}index) ((predator\PYGZus{}cfg).prey\PYGZus{}mask \PYGZam{} (1 \PYGZlt{}\PYGZlt{} (prey\PYGZus{}index)))}
+
+\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n+nf}{species\PYGZus{}count}\PYG{p}{(}\PYG{k+kt}{void}\PYG{p}{);}
+\PYG{k}{const}\PYG{+w}{ }\PYG{n}{SpeciesConfig}\PYG{+w}{ }\PYG{o}{*}\PYG{n+nf}{species\PYGZus{}get}\PYG{p}{(}\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{index}\PYG{p}{);}
+\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n+nf}{species\PYGZus{}find\PYGZus{}by\PYGZus{}id}\PYG{p}{(}\PYG{k}{const}\PYG{+w}{ }\PYG{k+kt}{char}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{id}\PYG{p}{);}
+\PYG{k+kt}{void}\PYG{+w}{ }\PYG{n+nf}{species\PYGZus{}init}\PYG{p}{(}\PYG{k}{const}\PYG{+w}{ }\PYG{n}{SpeciesConfig}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{configs}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{count}\PYG{p}{);}
+\PYG{k+kt}{void}\PYG{+w}{ }\PYG{n+nf}{species\PYGZus{}destroy}\PYG{p}{(}\PYG{k+kt}{void}\PYG{p}{);}
+
+\PYG{c+cp}{\PYGZsh{}endif}
+\end{MintedVerbatim}

@@ -1,0 +1,31 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+cp}{\PYGZsh{}ifndef CONF\PYGZus{}H}
+\PYG{c+cp}{\PYGZsh{}define CONF\PYGZus{}H}
+
+\PYG{c+cp}{\PYGZsh{}include}\PYG{+w}{ }\PYG{c+cpf}{\PYGZdq{}species.h\PYGZdq{}}
+
+\PYG{k}{typedef}\PYG{+w}{ }\PYG{k}{struct}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{eat\PYGZus{}radius}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{adrenaline\PYGZus{}boost}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{rotation\PYGZus{}smooth}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{death\PYGZus{}flash\PYGZus{}duration}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{starvation\PYGZus{}seconds}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{start\PYGZus{}width}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{start\PYGZus{}height}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{start\PYGZus{}fullscreen}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{tick\PYGZus{}ms}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{char}\PYG{+w}{ }\PYG{n}{assets\PYGZus{}dir}\PYG{p}{[}\PYG{l+m+mi}{256}\PYG{p}{];}
+\PYG{p}{\PYGZcb{}}\PYG{+w}{ }\PYG{n}{GlobalConfig}\PYG{p}{;}
+
+\PYG{k}{typedef}\PYG{+w}{ }\PYG{k}{struct}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{n}{GlobalConfig}\PYG{+w}{ }\PYG{n}{global}\PYG{p}{;}
+\PYG{+w}{    }\PYG{n}{SpeciesConfig}\PYG{+w}{ }\PYG{n}{species}\PYG{p}{[}\PYG{n}{MAX\PYGZus{}SPECIES}\PYG{p}{];}
+\PYG{+w}{    }\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{species\PYGZus{}count}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{char}\PYG{+w}{ }\PYG{n}{last\PYGZus{}error}\PYG{p}{[}\PYG{l+m+mi}{512}\PYG{p}{];}
+\PYG{p}{\PYGZcb{}}\PYG{+w}{ }\PYG{n}{AquariumConfig}\PYG{p}{;}
+
+\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n+nf}{conf\PYGZus{}load}\PYG{p}{(}\PYG{n}{AquariumConfig}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{cfg}\PYG{p}{,}\PYG{+w}{ }\PYG{k}{const}\PYG{+w}{ }\PYG{k+kt}{char}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{override\PYGZus{}path}\PYG{p}{);}
+\PYG{k}{const}\PYG{+w}{ }\PYG{k+kt}{char}\PYG{+w}{ }\PYG{o}{*}\PYG{n+nf}{conf\PYGZus{}error}\PYG{p}{(}\PYG{k}{const}\PYG{+w}{ }\PYG{n}{AquariumConfig}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{cfg}\PYG{p}{);}
+
+\PYG{c+cp}{\PYGZsh{}endif}
+\end{MintedVerbatim}

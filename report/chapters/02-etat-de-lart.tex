@@ -1,0 +1,233 @@
+\chapter{État de l'art}
+\label{chap:etat-de-lart}
+
+\section{Le modèle de Reynolds : flocking et boids}
+
+En 1987, Craig W. Reynolds publie au SIGGRAPH un article fondateur
+intitulé \emph{Flocks, herds and schools: a distributed behavioral
+model}~\cite{reynolds1987flocks}. Il y propose un modèle de simulation
+de groupes d'animaux (volées d'oiseaux, troupeaux, bancs de poissons)
+qui repose sur trois constats~:
+
+\begin{enumerate}
+  \item Le comportement de groupe ne provient pas d'un \emph{leader}
+    qui dicterait la direction commune.
+  \item Chaque agent (que Reynolds appelle un \emph{boid}) prend ses
+    décisions à partir d'observations \emph{purement locales}~: il
+    ne voit que ses voisins dans un voisinage défini.
+  \item Les règles locales sont peu nombreuses et simples, mais le
+    comportement global qui en émerge est riche et crédible.
+\end{enumerate}
+
+\subsection{Les trois règles canoniques}
+
+Reynolds définit trois règles, appliquées indépendamment puis
+combinées en une accélération unique~:
+
+\paragraph{Séparation.} Évite les collisions avec les voisins trop
+proches. Mathématiquement, on accumule une force inversement
+proportionnelle à la distance entre l'agent et chacun de ses voisins
+proches~:
+\[
+  \vec{F}_{\text{sep}} \propto -\sum_{i \in V_{\text{proches}}} \frac{\vec{r}_i}{\|\vec{r}_i\|^2}
+\]
+où $\vec{r}_i = \vec{p}_i - \vec{p}_{\text{self}}$ est le vecteur
+allant de l'agent au voisin~$i$.
+
+\paragraph{Alignement.} Aligne sa propre vitesse sur la moyenne des
+vitesses des voisins~:
+\[
+  \vec{F}_{\text{ali}} \propto \overline{\vec{v}}_V - \vec{v}_{\text{self}}
+\]
+
+\paragraph{Cohésion.} Tend à se rapprocher du \emph{centre de masse}
+local des voisins~:
+\[
+  \vec{F}_{\text{coh}} \propto \overline{\vec{p}}_V - \vec{p}_{\text{self}}
+\]
+
+\subsection{Combinaison et limites}
+
+Les trois forces sont additionnées, chacune pondérée par un
+coefficient (\code{separation\_weight}, etc.), puis l'accélération
+résultante est bornée par une \emph{force maximale} \code{max\_force}
+afin d'éviter des changements brusques. La vitesse résultante est
+elle-même bornée par \code{max\_speed}, et un seuil minimal
+\code{min\_speed} maintient les agents en mouvement.
+
+Cette construction présente plusieurs propriétés intéressantes~:
+
+\begin{itemize}
+  \item Elle est \emph{distribuée}~: chaque boid décide pour
+    lui-même, sans coordination centrale.
+  \item Elle est \emph{paramétrable}~: en jouant sur les rayons et
+    les poids, on obtient des comportements visuellement très
+    différents (banc serré, nuée diffuse, individus solitaires).
+  \item Elle a une complexité naïve en $O(N^2)$ (chaque agent
+    examine chaque autre), améliorable par des structures spatiales
+    de type \emph{spatial hashing} ou \emph{octree}~\cite{ericson2004rtcd},
+    mais cette complexité reste acceptable pour
+    $N \lesssim 200$ comme dans notre cas.
+\end{itemize}
+
+\section{Comportements de pilotage : au-delà des boids}
+
+Le modèle initial de Reynolds décrit trois forces de groupe, mais
+laisse de côté les interactions inter-espèces. Dans un article
+ultérieur~\cite{reynolds1999steering}, Reynolds généralise sous le
+nom de \emph{steering behaviors} (comportements de pilotage) une
+famille plus large de forces utiles pour les agents autonomes~: \emph{seek}
+(aller vers une cible), \emph{flee} (s'éloigner), \emph{pursue}
+(intercepter une cible mobile), \emph{wander} (errer aléatoirement),
+\emph{obstacle avoidance}, etc. Millington et Funge approfondissent
+cette taxonomie dans le contexte du jeu vidéo~\cite{millington2009ai}.
+
+Pour notre aquarium, les forces ajoutées au-delà des trois forces
+classiques sont les suivantes~:
+
+\begin{itemize}
+  \item \textbf{Fuite (\emph{flee}).} Une proie s'éloigne d'un
+    prédateur visible dans son rayon de peur \code{fear\_radius},
+    avec un \emph{boost} d'adrénaline \code{ADRENALINE\_BOOST} qui
+    multiplie temporairement sa vitesse maximale.
+  \item \textbf{Chasse (\emph{seek}).} Un prédateur se dirige vers
+    sa proie la plus proche dans son rayon de chasse
+    \code{hunt\_radius}, à condition que l'espèce de la proie
+    figure dans son masque \code{prey\_mask}.
+  \item \textbf{Évitement intra-espèce.} Une force d'écartement
+    supplémentaire entre individus d'une même espèce, au-delà de
+    la séparation locale, modélisée par \code{avoid\_same\_radius}.
+    Cette force évite que des prédateurs solitaires (requin,
+    barracuda) se collent les uns aux autres.
+\end{itemize}
+
+\section{Intégration à pas fixe vs pas variable}
+
+Toute simulation continue échantillonnée doit choisir un schéma
+d'intégration numérique. Les deux approches usuelles sont~:
+
+\paragraph{Pas variable.} À chaque image, on calcule le délai
+$\Delta t$ écoulé depuis l'image précédente, puis on intègre les
+positions et vitesses sur cet intervalle. Avantage~: la simulation
+suit le rythme réel, peu importe que le rendu prenne 16~ms ou
+50~ms. Inconvénient majeur~: le comportement devient \emph{non
+déterministe} et numériquement instable lorsque $\Delta t$ varie
+fortement (typiquement à cause d'un \emph{stutter} système).
+
+\paragraph{Pas fixe.} On choisit un pas $\Delta t$ constant (par
+exemple 16~ms, soit environ 60~Hz) et on appelle la fonction de
+mise à jour à intervalles réguliers. Avantage~: déterminisme
+parfait, stabilité numérique, code simple. Inconvénient~: si le
+rendu prend plus longtemps que $\Delta t$, le système peut
+prendre du retard. Cette limitation se gère par un mécanisme de
+\emph{rattrapage} (faire plusieurs ticks de simulation par image
+de rendu) si nécessaire.
+
+Pour notre projet, le compromis bénéfice/complexité est net~: le
+pas fixe est implémenté trivialement avec
+\code{g\_timeout\_add(TICK\_MS, \ldots)} de GLib~\cite{glib}, et la
+simulation reste fluide tant que le coût de calcul d'un tick reste
+inférieur à \code{TICK\_MS}.
+
+\section{GTK4 comme moteur de rendu}
+
+GTK4~\cite{gtk4docs} est le \emph{toolkit} graphique du projet
+GNOME. Il s'agit d'une bibliothèque d'interface utilisateur de
+bureau, et non d'un moteur de jeu. L'utiliser pour piloter une
+simulation animée est un choix non standard qui mérite quelques
+explications.
+
+\paragraph{Arguments en faveur de GTK4.} Bibliothèque native, écrite
+en C, intégration parfaite avec l'environnement Linux, gestion
+automatique de la fenêtre, du plein écran, des entrées clavier,
+et accès à un système de \emph{CSS} pour styler les widgets, y
+compris des transformations affines (rotation, mise à l'échelle).
+La présence du widget \code{GtkPicture} pour afficher une image
+fixe et la possibilité de placer ces widgets en coordonnées
+absolues via \code{GtkFixed} permettent d'obtenir un rendu
+2D~animé sans dépendre d'OpenGL ou d'une bibliothèque tierce.
+
+\paragraph{Arguments contre.} GTK n'est pas optimisé pour des
+centaines de widgets manipulés à 60~Hz. Chaque entité de
+l'aquarium étant un widget GTK distinct, on charge le système avec
+$N$ recalculs de style CSS par image. En pratique, à 95~poissons,
+les performances restent acceptables sur du matériel moderne, mais
+ce choix limiterait la simulation à quelques centaines d'agents
+au plus. Une version future utilisant Cairo ou GTK \emph{snapshot}
+pour dessiner directement les sprites en une seule passe gagnerait
+significativement en performance.
+
+\section{Formats de configuration}
+\label{sec:config-formats}
+
+Le cœur du projet est de permettre la modification de paramètres
+sans recompilation. Cela impose de choisir un format de
+configuration. Quatre familles ont été envisagées~:
+
+\paragraph{INI.} Très répandu, simplissime à parser, lisible.
+Faiblesses~: pas de structures imbriquées standard, pas de
+listes natives, types implicites (tout est chaîne).
+
+\paragraph{JSON.} Universel, beaucoup d'outils, types stricts
+(nombres, booléens, listes). Faiblesses pour un fichier
+\emph{édité à la main}~: pas de commentaires, virgules
+trompeuses, guillemets obligatoires partout, parenthèses
+imbriquées qui rendent la structure visuelle confuse.
+
+\paragraph{YAML.} Lisible, permet les commentaires, listes
+natives. Faiblesses~: spécification très complexe (plusieurs
+ambiguïtés célèbres comme \emph{Norway problem}), parseur lourd,
+sensibilité à l'indentation par espaces qui pénalise les éditeurs
+non-techniques.
+
+\paragraph{TOML.} \emph{Tom's Obvious, Minimal
+Language}~\cite{tomlspec}, format conçu spécifiquement pour les
+fichiers de configuration. Avantages décisifs pour notre cas~:
+
+\begin{itemize}
+  \item Commentaires natifs avec~\code{\#}.
+  \item Sections claires \code{[global]}, tableaux de tables
+    \code{[[species]]}.
+  \item Types stricts (entier, flottant, booléen, chaîne, tableau,
+    date).
+  \item Spécification courte et sans ambiguïté.
+  \item Parseurs disponibles dans la plupart des langages, en
+    particulier \code{tomlc99}~\cite{tomlc99}, une implémentation
+    en C99 distribuée sur deux fichiers (\file{toml.h} et
+    \file{toml.c}), facile à \emph{vendor}~iser dans un projet C
+    sans dépendance externe.
+\end{itemize}
+
+Le tableau~\ref{tab:format-comparison} récapitule cette
+comparaison.
+
+\begin{table}[h!]
+\centering
+\footnotesize
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Critère} & \textbf{INI} & \textbf{JSON} & \textbf{YAML} & \textbf{TOML} \\
+\midrule
+Commentaires natifs    & oui & non & oui & oui \\
+Listes natives         & non & oui & oui & oui \\
+Types stricts          & non & oui & oui & oui \\
+Tables imbriquées      & non & oui & oui & oui \\
+Édition manuelle       & ++  & --  & +   & ++  \\
+Parseur C minimaliste  & oui & oui & non & oui \\
+Spécification courte   & oui & oui & non & oui \\
+\bottomrule
+\end{tabular}
+\caption{Comparaison des formats de configuration courants.}
+\label{tab:format-comparison}
+\end{table}
+
+\section{Synthèse}
+
+Le projet se positionne donc à l'intersection de trois traditions~:
+le modèle de Reynolds pour le comportement, l'écosystème de
+développement GTK pour le rendu, et la philosophie \emph{Unix} de
+configuration par fichier texte (avec chemins de recherche en
+\file{./}, \file{\textasciitilde/.config/} et \file{/etc/}) pour
+l'extensibilité. Chacun de ces piliers est suffisamment stable et
+documenté pour servir de fondation~; la valeur ajoutée du projet
+réside dans leur intégration cohérente.

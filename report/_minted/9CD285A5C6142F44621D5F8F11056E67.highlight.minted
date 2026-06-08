@@ -1,0 +1,14 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{pulse}\PYG{+w}{   }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{fmod}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{death\PYGZus{}timer}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{l+m+mf}{24.0}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mf}{2.0}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{\PYGZlt{}}\PYG{+w}{ }\PYG{l+m+mf}{1.0}\PYG{+w}{ }\PYG{o}{?}\PYG{+w}{ }\PYG{l+m+mf}{1.0}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{p}{;}
+\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{scale}\PYG{+w}{   }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{1.15}\PYG{+w}{ }\PYG{o}{+}\PYG{+w}{ }\PYG{p}{(}\PYG{l+m+mf}{0.35}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{pulse}\PYG{p}{);}
+\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{opacity}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.35}\PYG{+w}{ }\PYG{o}{+}\PYG{+w}{ }\PYG{p}{(}\PYG{l+m+mf}{0.55}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{pulse}\PYG{p}{);}
+\PYG{n}{snprintf}\PYG{p}{(}\PYG{n}{css}\PYG{p}{,}\PYG{+w}{ }\PYG{k}{sizeof}\PYG{p}{(}\PYG{n}{css}\PYG{p}{),}
+\PYG{+w}{         }\PYG{l+s}{\PYGZdq{}.\PYGZpc{}s \PYGZob{} transform: rotate(\PYGZpc{}.1fdeg) scale(\PYGZpc{}.2f); \PYGZdq{}}
+\PYG{+w}{         }\PYG{l+s}{\PYGZdq{}opacity: \PYGZpc{}.2f; \PYGZcb{}\PYGZdq{}}\PYG{p}{,}
+\PYG{+w}{         }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{css\PYGZus{}class}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{angle}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{scale}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{opacity}\PYG{p}{);}
+\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{death\PYGZus{}timer}\PYG{+w}{ }\PYG{o}{\PYGZhy{}=}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{dt}\PYG{p}{;}
+\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{death\PYGZus{}timer}\PYG{+w}{ }\PYG{o}{\PYGZlt{}=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{state}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{ENTITY\PYGZus{}INACTIVE}\PYG{p}{;}
+\PYG{+w}{    }\PYG{n}{gtk\PYGZus{}widget\PYGZus{}set\PYGZus{}visible}\PYG{p}{(}\PYG{n}{e}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{widget}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{FALSE}\PYG{p}{);}
+\PYG{p}{\PYGZcb{}}
+\end{MintedVerbatim}
