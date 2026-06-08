@@ -21,4 +21,7 @@
 #define START_HEIGHT 720
 #define START_FULLSCREEN 0
 
+/* How long (seconds) a fish can go without eating before starving */
+#define STARVATION_SECONDS 120.0
+
 #endif

@@ -28,6 +28,7 @@ static const SpeciesConfig SPECIES_TABLE[SPECIES_COUNT] = {
         .prey_mask = 0,
         .lifespan = 120.0,
         .flock_size = 45,
+        .max_population = 60,
         .respawn_delay = 1.5,
     },
     [SPECIES_CLOWNFISH] = {
@@ -55,6 +56,7 @@ static const SpeciesConfig SPECIES_TABLE[SPECIES_COUNT] = {
         .prey_mask = 0,
         .lifespan = 120.0,
         .flock_size = 0,
+        .max_population = 18,
         .respawn_delay = 1.5,
     },
     [SPECIES_ANGELFISH] = {
@@ -82,6 +84,7 @@ static const SpeciesConfig SPECIES_TABLE[SPECIES_COUNT] = {
         .prey_mask = 0,
         .lifespan = 150.0,
         .flock_size = 0,
+        .max_population = 14,
         .respawn_delay = 2.0,
     },
     [SPECIES_BARRACUDA] = {
@@ -109,6 +112,7 @@ static const SpeciesConfig SPECIES_TABLE[SPECIES_COUNT] = {
         .prey_mask = MASK(SPECIES_GOLDFISH) | MASK(SPECIES_CLOWNFISH),
         .lifespan = 200.0,
         .flock_size = 0,
+        .max_population = 10,
         .respawn_delay = 4.0,
     },
     [SPECIES_BASS] = {
@@ -136,6 +140,7 @@ static const SpeciesConfig SPECIES_TABLE[SPECIES_COUNT] = {
         .prey_mask = MASK(SPECIES_GOLDFISH) | MASK(SPECIES_CLOWNFISH),
         .lifespan = 180.0,
         .flock_size = 0,
+        .max_population = 10,
         .respawn_delay = 4.5,
     },
     [SPECIES_TROUT] = {
@@ -163,6 +168,7 @@ static const SpeciesConfig SPECIES_TABLE[SPECIES_COUNT] = {
         .prey_mask = MASK(SPECIES_GOLDFISH),
         .lifespan = 180.0,
         .flock_size = 0,
+        .max_population = 10,
         .respawn_delay = 4.5,
     },
     [SPECIES_TUNA] = {
@@ -190,6 +196,7 @@ static const SpeciesConfig SPECIES_TABLE[SPECIES_COUNT] = {
         .prey_mask = MASK(SPECIES_GOLDFISH) | MASK(SPECIES_CLOWNFISH),
         .lifespan = 200.0,
         .flock_size = 4,
+        .max_population = 8,
         .respawn_delay = 5.0,
     },
     [SPECIES_SHARK] = {
@@ -217,6 +224,7 @@ static const SpeciesConfig SPECIES_TABLE[SPECIES_COUNT] = {
         .prey_mask = MASK(SPECIES_TUNA) | MASK(SPECIES_BASS) | MASK(SPECIES_TROUT) | MASK(SPECIES_ANGELFISH) | MASK(SPECIES_GOLDFISH),
         .lifespan = 300.0,
         .flock_size = 2,
+        .max_population = 8,
         .respawn_delay = 6.0,
     },
 };

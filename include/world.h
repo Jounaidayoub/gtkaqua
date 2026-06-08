@@ -43,6 +43,15 @@ void world_tick(World *w);
 int world_spawn(World *w, SpeciesKind kind, Vec2 pos, Vec2 vel);
 void world_despawn(World *w, int index);
 void world_populate(World *w);
+void world_populate_enabled(World *w, const gboolean enabled[SPECIES_COUNT]);
+void world_clear(World *w);
+void world_remove_species(World *w, SpeciesKind kind, int count);
+
+/* Control simulation time scaling (1.0 = normal speed) */
+void world_set_time_scale(World *w, double scale);
+
+/* Remove the most recently spawned alive entity (if any) */
+void world_remove_last(World *w);
 
 gboolean world_tick_cb(gpointer data);
 
