@@ -18,20 +18,18 @@ typedef struct {
     bool fullscreen;
     World world;
     GtkWidget *sidebar;
-    GtkWidget *pool_frame;
-    GtkWidget *pool_box;
-    GtkWidget *precise_frame;
-    GtkWidget *species_combo;
+    GtkWidget *ctrl_frame;
     GtkWidget *speed_scale;
-    GtkWidget *add_count_spin;
-    GtkWidget *remove_count_spin;
     GtkWidget *sim_frame;
     GtkWidget *pause_button;
     bool paused;
     bool trails;
     bool bubbles;
     bool debug_info;
-    GtkWidget *species_checks[MAX_SPECIES];
+    GtkWidget *species_spins[MAX_SPECIES];
+    GtkWidget *pop_frame;
+    GtkWidget *total_label;
+    GtkWidget *species_pop_labels[MAX_SPECIES];
     AquariumConfig cfg;
 } AppState;
 
@@ -56,6 +54,31 @@ static gboolean tick_cb(gpointer data) {
     if (!app->paused) {
         world_tick(&app->world);
     }
+
+    /* Update population counters */
+    int sc = species_count();
+    int total = 0;
+    for (int s = 0; s < sc; s++) {
+        total += app->world.alive_counts[s];
+    }
+    char buf[64];
+    snprintf(buf, sizeof(buf), "<b>Total: %d</b>", total);
+    gtk_label_set_markup(GTK_LABEL(app->total_label), buf);
+
+    for (int s = 0; s < sc; s++) {
+        GtkWidget *lbl = app->species_pop_labels[s];
+        if (!lbl) {
+            continue;
+        }
+        const SpeciesConfig *cfg = species_get(s);
+        if (!cfg || !cfg->name[0]) {
+            continue;
+        }
+        snprintf(buf, sizeof(buf), "%s: %d/%d", cfg->name,
+                 app->world.alive_counts[s], cfg->max_population);
+        gtk_label_set_text(GTK_LABEL(lbl), buf);
+    }
+
     return G_SOURCE_CONTINUE;
 }
 
@@ -97,63 +120,20 @@ static void on_speed_changed(GtkRange *range, gpointer user_data) {
     world_set_time_scale(&app->world, val);
 }
 
-static int get_active_species(AppState *app) {
-    gint active = gtk_combo_box_get_active(GTK_COMBO_BOX(app->species_combo));
-    if (active < 0 || active >= species_count()) {
-        return -1;
-    }
-    return active;
-}
-
-static void sync_species_limits(AppState *app) {
-    int active = get_active_species(app);
-    if (active < 0) {
-        return;
-    }
-    const SpeciesConfig *cfg = species_get(active);
-    if (!cfg) {
-        return;
-    }
-    if (app->add_count_spin) {
-        int max_add = cfg->max_population > 0 ? cfg->max_population : 100;
-        gtk_spin_button_set_range(GTK_SPIN_BUTTON(app->add_count_spin), 1, max_add);
-        if (gtk_spin_button_get_value(GTK_SPIN_BUTTON(app->add_count_spin)) > max_add) {
-            gtk_spin_button_set_value(GTK_SPIN_BUTTON(app->add_count_spin), max_add);
-        }
-    }
-    if (app->remove_count_spin) {
-        int max_remove = cfg->max_population > 0 ? cfg->max_population : 100;
-        gtk_spin_button_set_range(GTK_SPIN_BUTTON(app->remove_count_spin), 1, max_remove);
-    }
-}
-
-static void on_species_changed(GtkComboBox *combo, gpointer user_data) {
-    (void) combo;
-    sync_species_limits((AppState *) user_data);
-}
-
-static void on_remove_fish_clicked(GtkButton *btn, gpointer user_data) {
+static void on_species_add_clicked(GtkButton *btn, gpointer user_data) {
     (void) btn;
     AppState *app = (AppState *) user_data;
-    int active = get_active_species(app);
-    if (active < 0) {
-        return;
-    }
-    int count = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(app->remove_count_spin));
-    world_remove_species(&app->world, active, count);
+    int si = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(btn), "species-index"));
+    Vec2 pos = { app->world.width * ((double) rand() / RAND_MAX), app->world.height * ((double) rand() / RAND_MAX) };
+    Vec2 vel = { (double) rand() / RAND_MAX * 80.0 - 40.0, (double) rand() / RAND_MAX * 80.0 - 40.0 };
+    world_spawn(&app->world, si, pos, vel);
 }
 
-static void on_precise_add_clicked(GtkButton *btn, gpointer user_data) {
+static void on_species_remove_clicked(GtkButton *btn, gpointer user_data) {
     (void) btn;
     AppState *app = (AppState *) user_data;
-    int active = get_active_species(app);
-    if (active < 0 || active >= species_count()) return;
-    int count = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(app->add_count_spin));
-    for (int i = 0; i < count; i++) {
-        Vec2 pos = { app->world.width * ((double) rand() / RAND_MAX), app->world.height * ((double) rand() / RAND_MAX) };
-        Vec2 vel = { (double) rand() / RAND_MAX * 80.0 - 40.0, (double) rand() / RAND_MAX * 80.0 - 40.0 };
-        world_spawn(&app->world, active, pos, vel);
-    }
+    int si = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(btn), "species-index"));
+    world_remove_species(&app->world, si, 1);
 }
 
 static void on_pause_clicked(GtkButton *btn, gpointer user_data) {
@@ -166,17 +146,24 @@ static void on_pause_clicked(GtkButton *btn, gpointer user_data) {
     }
 }
 
-static void rebuild_species_ui(AppState *app) {
-    /* Clear pool_box children (keep only the title label) */
-    GtkWidget *child = gtk_widget_get_first_child(app->pool_box);
+static void rebuild_population_ui(AppState *app) {
+    GtkWidget *pop_box = gtk_frame_get_child(GTK_FRAME(app->pop_frame));
+    if (!pop_box) {
+        return;
+    }
+
+    GtkWidget *child = gtk_widget_get_first_child(pop_box);
     while (child) {
         GtkWidget *next = gtk_widget_get_next_sibling(child);
-        gtk_box_remove(GTK_BOX(app->pool_box), child);
+        gtk_box_remove(GTK_BOX(pop_box), child);
         child = next;
     }
-    /* Re-add the title */
-    GtkWidget *pool_title = gtk_label_new("Pool species");
-    gtk_box_append(GTK_BOX(app->pool_box), pool_title);
+
+    memset(app->species_pop_labels, 0, sizeof(app->species_pop_labels));
+
+    app->total_label = gtk_label_new(NULL);
+    gtk_label_set_markup(GTK_LABEL(app->total_label), "<b>Total: 0</b>");
+    gtk_box_append(GTK_BOX(pop_box), app->total_label);
 
     int sc = species_count();
     for (int s = 0; s < sc; s++) {
@@ -184,72 +171,63 @@ static void rebuild_species_ui(AppState *app) {
         if (!cfg || !cfg->name[0]) {
             continue;
         }
-        char label[128];
-        if (cfg->is_apex) {
-            snprintf(label, sizeof(label), "%s (apex)  (init %d / max %d)",
-                     cfg->name, cfg->flock_size, cfg->max_population);
-        } else {
-            snprintf(label, sizeof(label), "%s  (init %d / max %d)",
-                     cfg->name, cfg->flock_size, cfg->max_population);
+        char buf[64];
+        snprintf(buf, sizeof(buf), "%s: 0/%d", cfg->name, cfg->max_population);
+        app->species_pop_labels[s] = gtk_label_new(buf);
+        gtk_widget_set_halign(app->species_pop_labels[s], GTK_ALIGN_START);
+        gtk_box_append(GTK_BOX(pop_box), app->species_pop_labels[s]);
+    }
+}
+
+static void rebuild_species_ui(AppState *app) {
+    GtkWidget *ctrl_box = gtk_frame_get_child(GTK_FRAME(app->ctrl_frame));
+    if (ctrl_box) {
+        GtkWidget *child = gtk_widget_get_first_child(ctrl_box);
+        while (child) {
+            GtkWidget *next = gtk_widget_get_next_sibling(child);
+            gtk_box_remove(GTK_BOX(ctrl_box), child);
+            child = next;
         }
-        app->species_checks[s] = gtk_check_button_new_with_label(label);
-        gtk_check_button_set_active(GTK_CHECK_BUTTON(app->species_checks[s]), TRUE);
-        gtk_box_append(GTK_BOX(app->pool_box), app->species_checks[s]);
+    } else {
+        ctrl_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+        gtk_frame_set_child(GTK_FRAME(app->ctrl_frame), ctrl_box);
     }
 
-    /* Rebuild precise frame content */
-    GtkWidget *old_child = gtk_frame_get_child(GTK_FRAME(app->precise_frame));
-    if (old_child) {
-        gtk_frame_set_child(GTK_FRAME(app->precise_frame), NULL);
-    }
+    memset(app->species_spins, 0, sizeof(app->species_spins));
 
-    GtkWidget *precise_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
-    gtk_frame_set_child(GTK_FRAME(app->precise_frame), precise_box);
-
-    GtkWidget *lbl_precise = gtk_label_new("Add precise");
-    gtk_box_append(GTK_BOX(precise_box), lbl_precise);
-
-    GtkWidget *h1 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
-    gtk_box_append(GTK_BOX(precise_box), h1);
-    GtkWidget *lbl_e = gtk_label_new("Species:");
-    gtk_box_append(GTK_BOX(h1), lbl_e);
-
-    app->species_combo = gtk_combo_box_text_new();
+    int sc = species_count();
     for (int s = 0; s < sc; s++) {
         const SpeciesConfig *cfg = species_get(s);
-        if (cfg != 0 && cfg->name[0] != 0) {
-            gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(app->species_combo), cfg->name);
-        }
+        if (!cfg || !cfg->name[0]) continue;
+
+        GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+
+        GtkWidget *lbl = gtk_label_new(cfg->name);
+        gtk_widget_set_size_request(lbl, 78, -1);
+        gtk_widget_set_halign(lbl, GTK_ALIGN_START);
+        gtk_box_append(GTK_BOX(row), lbl);
+
+        int max_pop = cfg->max_population > 0 ? cfg->max_population : 100;
+        GtkWidget *spin = gtk_spin_button_new_with_range(0, max_pop, 1);
+        gtk_spin_button_set_value(GTK_SPIN_BUTTON(spin), cfg->flock_size);
+        gtk_widget_set_size_request(spin, 54, -1);
+        gtk_box_append(GTK_BOX(row), spin);
+        app->species_spins[s] = spin;
+
+        GtkWidget *btn_minus = gtk_button_new_with_label("-");
+        g_object_set_data(G_OBJECT(btn_minus), "species-index", GINT_TO_POINTER(s));
+        g_signal_connect(btn_minus, "clicked", G_CALLBACK(on_species_remove_clicked), app);
+        gtk_widget_set_size_request(btn_minus, 26, -1);
+        gtk_box_append(GTK_BOX(row), btn_minus);
+
+        GtkWidget *btn_plus = gtk_button_new_with_label("+");
+        g_object_set_data(G_OBJECT(btn_plus), "species-index", GINT_TO_POINTER(s));
+        g_signal_connect(btn_plus, "clicked", G_CALLBACK(on_species_add_clicked), app);
+        gtk_widget_set_size_request(btn_plus, 26, -1);
+        gtk_box_append(GTK_BOX(row), btn_plus);
+
+        gtk_box_append(GTK_BOX(ctrl_box), row);
     }
-    gtk_combo_box_set_active(GTK_COMBO_BOX(app->species_combo), 0);
-    g_signal_connect(app->species_combo, "changed", G_CALLBACK(on_species_changed), app);
-    gtk_box_append(GTK_BOX(h1), app->species_combo);
-
-    GtkWidget *h2 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
-    gtk_box_append(GTK_BOX(precise_box), h2);
-    GtkWidget *lbl_count = gtk_label_new("Number:");
-    gtk_box_append(GTK_BOX(h2), lbl_count);
-    app->add_count_spin = gtk_spin_button_new_with_range(1, 100, 1);
-    gtk_spin_button_set_value(GTK_SPIN_BUTTON(app->add_count_spin), 2);
-    gtk_box_append(GTK_BOX(h2), app->add_count_spin);
-
-    GtkWidget *btn_precise_add = gtk_button_new_with_label("+ Add");
-    g_signal_connect(btn_precise_add, "clicked", G_CALLBACK(on_precise_add_clicked), app);
-    gtk_box_append(GTK_BOX(precise_box), btn_precise_add);
-
-    GtkWidget *remove_row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
-    gtk_box_append(GTK_BOX(precise_box), remove_row);
-    GtkWidget *lbl_remove = gtk_label_new("Remove:");
-    gtk_box_append(GTK_BOX(remove_row), lbl_remove);
-    app->remove_count_spin = gtk_spin_button_new_with_range(1, 100, 1);
-    gtk_spin_button_set_value(GTK_SPIN_BUTTON(app->remove_count_spin), 1);
-    gtk_box_append(GTK_BOX(remove_row), app->remove_count_spin);
-
-    GtkWidget *btn_remove_spec = gtk_button_new_with_label("- Remove");
-    g_signal_connect(btn_remove_spec, "clicked", G_CALLBACK(on_remove_fish_clicked), app);
-    gtk_box_append(GTK_BOX(precise_box), btn_remove_spec);
-
-    sync_species_limits(app);
 }
 
 static void on_reload_clicked(GtkButton *btn, gpointer user_data) {
@@ -278,12 +256,17 @@ static void on_reload_clicked(GtkButton *btn, gpointer user_data) {
 
     rebuild_species_ui(app);
 
-    gboolean enabled[MAX_SPECIES];
-    int sc = species_count();
-    for (int s = 0; s < sc; s++) {
-        enabled[s] = TRUE;
+    int sc2 = species_count();
+    for (int s = 0; s < sc2; s++) {
+        GtkWidget *spin = app->species_spins[s];
+        if (!spin) continue;
+        int target = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(spin));
+        for (int i = 0; i < target; i++) {
+            Vec2 pos = { app->world.width * ((double) rand() / RAND_MAX), app->world.height * ((double) rand() / RAND_MAX) };
+            Vec2 vel = { (double) rand() / RAND_MAX * 80.0 - 40.0, (double) rand() / RAND_MAX * 80.0 - 40.0 };
+            world_spawn(&app->world, s, pos, vel);
+        }
     }
-    world_populate_enabled(&app->world, enabled);
 
     /* Show brief info */
     GtkWidget *dialog = gtk_message_dialog_new(
@@ -291,8 +274,8 @@ static void on_reload_clicked(GtkButton *btn, gpointer user_data) {
         GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
         GTK_MESSAGE_INFO, GTK_BUTTONS_OK,
         "Config reloaded with %d species. "
-        "Uncheck species you want to exclude and press Initialize pool.",
-        sc);
+        "Adjust target numbers with the spinners and press Initialize pool.",
+        sc2);
     gtk_window_present(GTK_WINDOW(dialog));
     g_signal_connect(dialog, "response", G_CALLBACK(gtk_window_destroy), NULL);
 }
@@ -304,16 +287,22 @@ static void on_reset_clicked(GtkButton *btn, gpointer user_data) {
     int height = gtk_widget_get_height(app->container);
     if (width <= 0) width = g_start_width;
     if (height <= 0) height = g_start_height;
-    gboolean enabled[MAX_SPECIES];
-    int sc = species_count();
-    for (int s = 0; s < sc; s++) {
-        enabled[s] = app->species_checks[s] != 0 && gtk_check_button_get_active(GTK_CHECK_BUTTON(app->species_checks[s]));
-    }
     world_clear(&app->world);
     world_init(&app->world, app->container, (double) width, (double) height);
     world_set_time_scale(&app->world, gtk_range_get_value(GTK_RANGE(app->speed_scale)));
-    world_populate_enabled(&app->world, enabled);
-    sync_species_limits(app);
+
+    int sc = species_count();
+    for (int s = 0; s < sc; s++) {
+        GtkWidget *spin = app->species_spins[s];
+        if (!spin) continue;
+        int target = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(spin));
+        for (int i = 0; i < target; i++) {
+            Vec2 pos = { app->world.width * ((double) rand() / RAND_MAX), app->world.height * ((double) rand() / RAND_MAX) };
+            Vec2 vel = { (double) rand() / RAND_MAX * 80.0 - 40.0, (double) rand() / RAND_MAX * 80.0 - 40.0 };
+            world_spawn(&app->world, s, pos, vel);
+        }
+    }
+    rebuild_population_ui(app);
 }
 
 static void on_activate(GtkApplication *gtk_app, gpointer user_data) {
@@ -354,6 +343,31 @@ static void on_activate(GtkApplication *gtk_app, gpointer user_data) {
     gtk_widget_set_size_request(app->sidebar, 220, -1);
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(sidebar_scroll), app->sidebar);
 
+    /* ---- Population counter ---- */
+    app->pop_frame = gtk_frame_new("Population");
+    gtk_widget_set_margin_bottom(app->pop_frame, 6);
+    gtk_box_append(GTK_BOX(app->sidebar), app->pop_frame);
+
+    GtkWidget *pop_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+    gtk_frame_set_child(GTK_FRAME(app->pop_frame), pop_box);
+
+    app->total_label = gtk_label_new(NULL);
+    gtk_label_set_markup(GTK_LABEL(app->total_label), "<b>Total: 0</b>");
+    gtk_box_append(GTK_BOX(pop_box), app->total_label);
+
+    int sc = species_count();
+    for (int s = 0; s < sc; s++) {
+        const SpeciesConfig *cfg = species_get(s);
+        if (!cfg || !cfg->name[0]) {
+            continue;
+        }
+        char buf[64];
+        snprintf(buf, sizeof(buf), "%s: 0/%d", cfg->name, cfg->max_population);
+        app->species_pop_labels[s] = gtk_label_new(buf);
+        gtk_widget_set_halign(app->species_pop_labels[s], GTK_ALIGN_START);
+        gtk_box_append(GTK_BOX(pop_box), app->species_pop_labels[s]);
+    }
+
     /* Aquarium area */
     app->overlay = gtk_overlay_new();
     gtk_box_append(GTK_BOX(root_box), app->overlay);
@@ -378,85 +392,11 @@ static void on_activate(GtkApplication *gtk_app, gpointer user_data) {
     gtk_overlay_add_overlay(GTK_OVERLAY(app->overlay), app->container);
     gtk_widget_set_can_target(app->container, FALSE);
 
-    /* ---- Pool species checkboxes ---- */
-    app->pool_frame = gtk_frame_new(NULL);
-    gtk_widget_set_margin_bottom(app->pool_frame, 6);
-    app->pool_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
-    gtk_frame_set_child(GTK_FRAME(app->pool_frame), app->pool_box);
-
-    GtkWidget *pool_title = gtk_label_new("Pool species");
-    gtk_box_append(GTK_BOX(app->pool_box), pool_title);
-
-    int sc = species_count();
-    for (int s = 0; s < sc; s++) {
-        const SpeciesConfig *cfg = species_get(s);
-        if (!cfg || !cfg->name[0]) {
-            continue;
-        }
-        char label[128];
-        if (cfg->is_apex) {
-            snprintf(label, sizeof(label), "%s (apex)  (init %d / max %d)",
-                     cfg->name, cfg->flock_size, cfg->max_population);
-        } else {
-            snprintf(label, sizeof(label), "%s  (init %d / max %d)",
-                     cfg->name, cfg->flock_size, cfg->max_population);
-        }
-        app->species_checks[s] = gtk_check_button_new_with_label(label);
-        gtk_check_button_set_active(GTK_CHECK_BUTTON(app->species_checks[s]), TRUE);
-        gtk_box_append(GTK_BOX(app->pool_box), app->species_checks[s]);
-    }
-    gtk_box_append(GTK_BOX(app->sidebar), app->pool_frame);
-
-    /* ---- Precise add section ---- */
-    app->precise_frame = gtk_frame_new(NULL);
-    gtk_widget_set_margin_bottom(app->precise_frame, 6);
-    GtkWidget *precise_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
-    gtk_frame_set_child(GTK_FRAME(app->precise_frame), precise_box);
-
-    GtkWidget *lbl_precise = gtk_label_new("Add precise");
-    gtk_box_append(GTK_BOX(precise_box), lbl_precise);
-
-    GtkWidget *h1 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
-    gtk_box_append(GTK_BOX(precise_box), h1);
-    GtkWidget *lbl_e = gtk_label_new("Species:");
-    gtk_box_append(GTK_BOX(h1), lbl_e);
-
-    app->species_combo = gtk_combo_box_text_new();
-    for (int s = 0; s < sc; s++) {
-        const SpeciesConfig *cfg = species_get(s);
-        if (cfg != 0 && cfg->name[0] != 0) {
-            gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(app->species_combo), cfg->name);
-        }
-    }
-    gtk_combo_box_set_active(GTK_COMBO_BOX(app->species_combo), 0);
-    g_signal_connect(app->species_combo, "changed", G_CALLBACK(on_species_changed), app);
-    gtk_box_append(GTK_BOX(h1), app->species_combo);
-
-    GtkWidget *h2 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
-    gtk_box_append(GTK_BOX(precise_box), h2);
-    GtkWidget *lbl_count = gtk_label_new("Number:");
-    gtk_box_append(GTK_BOX(h2), lbl_count);
-    app->add_count_spin = gtk_spin_button_new_with_range(1, 100, 1);
-    gtk_spin_button_set_value(GTK_SPIN_BUTTON(app->add_count_spin), 2);
-    gtk_box_append(GTK_BOX(h2), app->add_count_spin);
-
-    GtkWidget *btn_precise_add = gtk_button_new_with_label("+ Add");
-    g_signal_connect(btn_precise_add, "clicked", G_CALLBACK(on_precise_add_clicked), app);
-    gtk_box_append(GTK_BOX(precise_box), btn_precise_add);
-
-    GtkWidget *remove_row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
-    gtk_box_append(GTK_BOX(precise_box), remove_row);
-    GtkWidget *lbl_remove = gtk_label_new("Remove:");
-    gtk_box_append(GTK_BOX(remove_row), lbl_remove);
-    app->remove_count_spin = gtk_spin_button_new_with_range(1, 100, 1);
-    gtk_spin_button_set_value(GTK_SPIN_BUTTON(app->remove_count_spin), 1);
-    gtk_box_append(GTK_BOX(remove_row), app->remove_count_spin);
-
-    GtkWidget *btn_remove_spec = gtk_button_new_with_label("- Remove");
-    g_signal_connect(btn_remove_spec, "clicked", G_CALLBACK(on_remove_fish_clicked), app);
-    gtk_box_append(GTK_BOX(precise_box), btn_remove_spec);
-
-    gtk_box_append(GTK_BOX(app->sidebar), app->precise_frame);
+    /* ---- Population control ---- */
+    app->ctrl_frame = gtk_frame_new("Population Control");
+    gtk_widget_set_margin_bottom(app->ctrl_frame, 6);
+    gtk_box_append(GTK_BOX(app->sidebar), app->ctrl_frame);
+    rebuild_species_ui(app);
 
     /* ---- Simulation controls ---- */
     app->sim_frame = gtk_frame_new("Simulation");
@@ -537,7 +477,19 @@ static void on_activate(GtkApplication *gtk_app, gpointer user_data) {
 
     world_init(&app->world, app->container, (double) width, (double) height);
     world_set_time_scale(&app->world, 1.0);
-    world_populate(&app->world);
+
+    int sc3 = species_count();
+    for (int s = 0; s < sc3; s++) {
+        GtkWidget *spin = app->species_spins[s];
+        if (!spin) continue;
+        int target = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(spin));
+        for (int i = 0; i < target; i++) {
+            Vec2 pos = { app->world.width * ((double) rand() / RAND_MAX), app->world.height * ((double) rand() / RAND_MAX) };
+            Vec2 vel = { (double) rand() / RAND_MAX * 80.0 - 40.0, (double) rand() / RAND_MAX * 80.0 - 40.0 };
+            world_spawn(&app->world, s, pos, vel);
+        }
+    }
+    rebuild_population_ui(app);
 
     g_timeout_add(g_tick_ms, tick_cb, app);
 }
