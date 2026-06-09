@@ -171,11 +171,24 @@ static void rebuild_population_ui(AppState *app) {
         if (!cfg || !cfg->name[0]) {
             continue;
         }
-        char buf[64];
+
+        GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+
+        if (cfg->asset_path[0]) {
+            GtkWidget *icon = gtk_picture_new_for_filename(cfg->asset_path);
+            if (cfg->sprite_height > 0) {
+                double aspect = (double)cfg->sprite_width / (double)cfg->sprite_height;
+                gtk_widget_set_size_request(icon, (int)(14.0 * aspect), 14);
+            }
+            gtk_box_append(GTK_BOX(row), icon);
+        }
+
+        char buf[128];
         snprintf(buf, sizeof(buf), "%s: 0/%d", cfg->name, cfg->max_population);
         app->species_pop_labels[s] = gtk_label_new(buf);
-        gtk_widget_set_halign(app->species_pop_labels[s], GTK_ALIGN_START);
-        gtk_box_append(GTK_BOX(pop_box), app->species_pop_labels[s]);
+        gtk_box_append(GTK_BOX(row), app->species_pop_labels[s]);
+
+        gtk_box_append(GTK_BOX(pop_box), row);
     }
 }
 
@@ -200,7 +213,16 @@ static void rebuild_species_ui(AppState *app) {
         const SpeciesConfig *cfg = species_get(s);
         if (!cfg || !cfg->name[0]) continue;
 
-        GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+        GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+
+        if (cfg->asset_path[0]) {
+            GtkWidget *icon = gtk_picture_new_for_filename(cfg->asset_path);
+            if (cfg->sprite_height > 0) {
+                double aspect = (double)cfg->sprite_width / (double)cfg->sprite_height;
+                gtk_widget_set_size_request(icon, (int)(14.0 * aspect), 14);
+            }
+            gtk_box_append(GTK_BOX(row), icon);
+        }
 
         GtkWidget *lbl = gtk_label_new(cfg->name);
         gtk_widget_set_size_request(lbl, 78, -1);
