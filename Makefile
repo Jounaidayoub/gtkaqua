@@ -46,6 +46,7 @@ assets:
 	ffmpeg -i $(FISH_DIR)/fish2Texture.png -vf "hflip" -frames:v 1 -y $(ASSET_DIR)/clownfish.png
 	ffmpeg -i $(FISH_DIR)/fish3Texture.png -vf "hflip" -frames:v 1 -y $(ASSET_DIR)/angelfish.png
 	ffmpeg -i $(FISH_DIR)/fish4Texture.png -vf "hflip" -frames:v 1 -y $(ASSET_DIR)/barracuda.png
+	ffmpeg -i $(FISH_DIR)/sardine-no-back.png -vf "scale=80:-1"  -frames:v 1 -y $(ASSET_DIR)/sardine.png
 
 bear:
 	bear -- make clean all
