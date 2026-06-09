@@ -3,29 +3,12 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include "app_state.h"
 #include "config.h"
 #include "entity.h"
+#include "sidebar.h"
 #include "species.h"
 #include "world.h"
-
-typedef struct {
-    GtkWidget       *window;
-    GtkWidget       *root_box;          /* [sidebar] [main_area] */
-    GtkWidget       *sidebar;           /* The right panel */
-    GtkWidget       *main_area;         /* [overlay] [dashboard] */
-    GtkWidget       *dashboard;         /* The bottom row */
-    GtkWidget       *overlay;
-    GtkWidget       *background_picture;
-    GtkMediaStream  *background_stream;
-    GtkWidget       *container;
-    GtkWidget       *debug_overlay;
-    bool             fullscreen;
-    bool             debug_mode;
-    World            world;
-
-    /* Live UI pointers */
-    GtkWidget       *dash_labels[MAX_SPECIES]; /* Live counts in bottom bar */
-} AppState;
 
 static void on_background_error(GObject *obj, GParamSpec *pspec, gpointer user_data) {
     (void) pspec; (void) user_data;
@@ -46,7 +29,6 @@ static gboolean tick_cb(gpointer data) {
 
     world_tick(&app->world);
 
-    /* Update live dashboard labels */
     char buf[16];
     for (int s = 0; s < species_count(); s++) {
         if (app->dash_labels[s]) {
@@ -141,17 +123,6 @@ static gboolean on_key_pressed(GtkEventControllerKey *controller,
 
 /* ------------------------------------------------------------------ UI Builders */
 
-static GtkWidget *make_label(const char *text, bool bold) {
-    GtkWidget *lbl = gtk_label_new(text);
-    gtk_label_set_xalign(GTK_LABEL(lbl), 0.0f);
-    if (bold) {
-        char markup[256];
-        snprintf(markup, sizeof(markup), "<b>%s</b>", text);
-        gtk_label_set_markup(GTK_LABEL(lbl), markup);
-    }
-    return lbl;
-}
-
 /* --- Bottom Dashboard --- */
 static void build_dashboard(AppState *app) {
     app->dashboard = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 16);
@@ -179,106 +150,6 @@ static void build_dashboard(AppState *app) {
         gtk_box_append(GTK_BOX(item), app->dash_labels[s]);
 
         gtk_box_append(GTK_BOX(app->dashboard), item);
-    }
-}
-
-/* --- Right Sidebar --- */
-typedef struct { AppState *app; int species; double *field; } SpinCtx;
-
-static void on_target_count_changed(GtkSpinButton *spin, gpointer ud) {
-    SpinCtx *ctx = (SpinCtx *) ud;
-    ctx->app->world.target_counts[ctx->species] = (int) gtk_spin_button_get_value(spin);
-}
-static void on_adv_changed(GtkSpinButton *spin, gpointer ud) {
-    SpinCtx *ctx = (SpinCtx *) ud;
-    *ctx->field = gtk_spin_button_get_value(spin);
-}
-
-static void build_sidebar(AppState *app) {
-    app->sidebar = gtk_scrolled_window_new();
-    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(app->sidebar),
-                                    GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
-    gtk_widget_set_size_request(app->sidebar, 280, -1);
-    gtk_widget_add_css_class(app->sidebar, "sidebar");
-
-    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
-    gtk_widget_set_margin_top   (vbox, 16);
-    gtk_widget_set_margin_bottom(vbox, 16);
-    gtk_widget_set_margin_start (vbox, 12);
-    gtk_widget_set_margin_end   (vbox, 12);
-    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(app->sidebar), vbox);
-
-    GtkWidget *title = make_label("Settings (Tab to toggle)", true);
-    gtk_box_append(GTK_BOX(vbox), title);
-    gtk_box_append(GTK_BOX(vbox), gtk_separator_new(GTK_ORIENTATION_HORIZONTAL));
-
-    /* Population Counters */
-    gtk_box_append(GTK_BOX(vbox), make_label("Population Targets", true));
-    GtkWidget *grid = gtk_grid_new();
-    gtk_grid_set_column_spacing(GTK_GRID(grid), 8);
-    gtk_grid_set_row_spacing(GTK_GRID(grid), 6);
-    gtk_box_append(GTK_BOX(vbox), grid);
-
-    for (int s = 0; s < species_count(); s++) {
-        const SpeciesConfig *cfg = species_get((SpeciesKind) s);
-        if (!cfg) continue;
-
-        gtk_grid_attach(GTK_GRID(grid), make_label(cfg->name, false), 0, s, 1, 1);
-
-        GtkWidget *spin = gtk_spin_button_new_with_range(0, MAX_ENTITIES, 1);
-        gtk_spin_button_set_value(GTK_SPIN_BUTTON(spin), app->world.target_counts[s]);
-        gtk_widget_set_hexpand(spin, TRUE);
-
-        SpinCtx *ctx = g_new(SpinCtx, 1);
-        ctx->app = app; ctx->species = s;
-        g_signal_connect(spin, "value-changed", G_CALLBACK(on_target_count_changed), ctx);
-        gtk_grid_attach(GTK_GRID(grid), spin, 1, s, 1, 1);
-    }
-
-    gtk_box_append(GTK_BOX(vbox), gtk_separator_new(GTK_ORIENTATION_HORIZONTAL));
-
-    /* Advanced */
-    GtkWidget *expander = gtk_expander_new("Advanced Behavior");
-    GtkWidget *adv_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 16);
-    gtk_widget_set_margin_top(adv_box, 8);
-    gtk_expander_set_child(GTK_EXPANDER(expander), adv_box);
-    gtk_box_append(GTK_BOX(vbox), expander);
-
-    for (int s = 0; s < species_count(); s++) {
-        const SpeciesConfig *cfg = species_get((SpeciesKind) s);
-        if (!cfg) continue;
-        EffectiveSpecies *eff = &app->world.effective[s];
-
-        GtkWidget *s_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
-        gtk_box_append(GTK_BOX(adv_box), make_label(cfg->name, true));
-
-        struct { const char *lbl; double *ptr; double max; } fields[] = {
-            {"Max Speed",   &eff->max_speed,   400.0},
-            {"Fear Radius", &eff->fear_radius, 600.0},
-            {"Fear Weight", &eff->fear_weight, 10.0},
-            {"Hunt Radius", &eff->hunt_radius, 800.0},
-            {"Hunt Weight", &eff->hunt_weight, 10.0},
-        };
-
-        for (int f = 0; f < 5; f++) {
-            GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
-            GtkWidget *lbl = make_label(fields[f].lbl, false);
-            gtk_widget_set_size_request(lbl, 100, -1);
-            gtk_box_append(GTK_BOX(row), lbl);
-
-            GtkWidget *spin = gtk_spin_button_new_with_range(0.0, fields[f].max, fields[f].max > 50 ? 5.0 : 0.1);
-            gtk_spin_button_set_digits(GTK_SPIN_BUTTON(spin), 1);
-            gtk_spin_button_set_value(GTK_SPIN_BUTTON(spin), *fields[f].ptr);
-            gtk_widget_set_hexpand(spin, TRUE);
-
-            SpinCtx *c = g_new(SpinCtx, 1);
-            c->app = app; c->species = s; c->field = fields[f].ptr;
-            g_signal_connect(spin, "value-changed", G_CALLBACK(on_adv_changed), c);
-
-            gtk_box_append(GTK_BOX(row), spin);
-            gtk_box_append(GTK_BOX(s_box), row);
-        }
-        gtk_box_append(GTK_BOX(adv_box), s_box);
     }
 }
 
@@ -317,7 +188,7 @@ static void on_activate(GtkApplication *gtk_app, gpointer user_data) {
     gtk_widget_add_css_class(app->container, "fish-layer");
     world_init(&app->world, app->container, START_WIDTH, START_HEIGHT);
 
-    build_sidebar(app);
+    sidebar_build(app);
     gtk_box_append(GTK_BOX(app->root_box), app->main_area);
     gtk_box_append(GTK_BOX(app->root_box), app->sidebar);
 

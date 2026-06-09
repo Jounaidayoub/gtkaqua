@@ -291,6 +291,10 @@ void entity_apply_visuals(struct World *w, int index) {
 
     if (e->css_provider != 0) {
         char css[224];
+        double angle_mod = fmod(e->angle, 360.0);
+        if (angle_mod < 0.0) angle_mod += 360.0;
+        double scale_y = (angle_mod > 90.0 && angle_mod < 270.0) ? -1.0 : 1.0;
+
         if (e->state == ENTITY_DYING) {
             double pulse = fmod(e->death_timer * 24.0, 2.0) < 1.0 ? 1.0 : 0.0;
             double scale = 1.15 + (0.35 * pulse);
@@ -298,9 +302,10 @@ void entity_apply_visuals(struct World *w, int index) {
             snprintf(
                 css,
                 sizeof(css),
-                ".%s { transform: rotate(%.1fdeg) scale(%.2f); opacity: %.2f; }",
+                ".%s { transform: rotate(%.1fdeg) scaleY(%.1f) scale(%.2f); opacity: %.2f; }",
                 e->css_class,
                 e->angle,
+                scale_y,
                 scale,
                 opacity
             );
@@ -311,7 +316,7 @@ void entity_apply_visuals(struct World *w, int index) {
                 gtk_widget_set_visible(e->widget, FALSE);
             }
         } else {
-            snprintf(css, sizeof(css), ".%s { transform: rotate(%.1fdeg); opacity: 1.0; }", e->css_class, e->angle);
+            snprintf(css, sizeof(css), ".%s { transform: rotate(%.1fdeg) scaleY(%.1f); opacity: 1.0; }", e->css_class, e->angle, scale_y);
         }
         gtk_css_provider_load_from_string(e->css_provider, css);
     }
